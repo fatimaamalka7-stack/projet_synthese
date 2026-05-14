@@ -8,22 +8,23 @@ export default {
   theme: {
     extend: {
       colors: {
+        /* Palette marron / noir / blanc / gris */
         primary: {
-          50:  '#fdf4ff',
-          100: '#fae8ff',
-          200: '#f5d0fe',
-          300: '#f0abfc',
-          400: '#e879f9',
-          500: '#d946ef',
-          600: '#c026d3',
-          700: '#a21caf',
-          800: '#86198f',
-          900: '#701a75',
+          50:  '#f7f2ed',
+          100: '#efe2d6',
+          200: '#e0cfbb',
+          300: '#cfb398',
+          400: '#b8895f',
+          500: '#9a6a3c',
+          600: '#7c542f',
+          700: '#5d4124',
+          800: '#3f2d1a',
+          900: '#24170c',
         },
         accent: {
-          400: '#fb923c',
-          500: '#f97316',
-          600: '#ea580c',
+          400: '#b8895f',
+          500: '#9a6a3c',
+          600: '#7c542f',
         }
       },
       fontFamily: {

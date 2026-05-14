@@ -38,8 +38,8 @@ export default function RegisterPage() {
     <div>
       <label className="block text-sm font-medium mb-2">{label} {required && <span className="text-red-500">*</span>}</label>
       <div className="relative">
-        <Icon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"/>
-        <input type={type} value={form[name]} onChange={set(name)}
+        <Icon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"/>
+        <input name={name} type={type} value={form[name]} onChange={set(name)}
           className={`input-field pl-10 ${errors[name] ? 'border-red-400 focus:ring-red-400' : ''}`}
           placeholder={placeholder} required={required} />
       </div>
@@ -65,11 +65,11 @@ export default function RegisterPage() {
             <div>
               <label className="block text-sm font-medium mb-2">Mot de passe <span className="text-red-500">*</span></label>
               <div className="relative">
-                <FiLock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"/>
+                <FiLock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"/>
                 <input type={showPwd ? 'text' : 'password'} value={form.password} onChange={set('password')}
                   className={`input-field pl-10 pr-10 ${errors.password ? 'border-red-400' : ''}`}
                   placeholder="Min. 8 caractères" required minLength={8} />
-                <button type="button" onClick={() => setShowPwd(!showPwd)}
+                <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => setShowPwd(!showPwd)}
                   className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400">
                   {showPwd ? <FiEyeOff size={16}/> : <FiEye size={16}/>}
                 </button>
@@ -80,7 +80,7 @@ export default function RegisterPage() {
             <div>
               <label className="block text-sm font-medium mb-2">Confirmer le mot de passe <span className="text-red-500">*</span></label>
               <div className="relative">
-                <FiLock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"/>
+                <FiLock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"/>
                 <input type="password" value={form.password_confirmation} onChange={set('password_confirmation')}
                   className={`input-field pl-10 ${errors.password_confirmation ? 'border-red-400' : ''}`}
                   placeholder="Répétez le mot de passe" required />

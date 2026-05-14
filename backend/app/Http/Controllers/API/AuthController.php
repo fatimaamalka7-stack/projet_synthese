@@ -19,7 +19,10 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'phone'    => 'nullable|string|max:20',
             'address'  => 'nullable|string|max:500',
+            'role'     => 'sometimes|in:client,admin',
         ]);
+
+        $role = $request->input('role', 'client');
 
         $user = User::create([
             'name'     => $request->name,
@@ -27,7 +30,7 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
             'phone'    => $request->phone,
             'address'  => $request->address,
-            'role'     => 'client',
+            'role'     => $role,
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
