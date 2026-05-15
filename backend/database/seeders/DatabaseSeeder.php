@@ -205,6 +205,9 @@ class DatabaseSeeder extends Seeder
             );
         }
 
+        // ── Produits supplémentaires via factory ───────────────────────────────
+        $this->call(ProductsSeeder::class);
+
         // ── Coupon de démonstration ───────────────────────────────────────────
         \App\Models\Coupon::firstOrCreate(
             ['code' => 'WELCOME10'],
