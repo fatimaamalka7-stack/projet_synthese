@@ -28,7 +28,9 @@ class ProductFactory extends Factory
             'price' => $this->faker->numberBetween(99, 999) + ($this->faker->numberBetween(0, 99) / 100),
             'stock' => $this->faker->numberBetween(0, 100),
             'category_id' => $categoryId,
-            'image' => null,
+            // Image en ligne (remplace les images locales)
+            'image' => 'https://placehold.co/600x800.webp?text=' . rawurlencode(ucfirst($name)),
+
             'matiere' => $this->faker->randomElement($materials),
             'tailles' => $this->faker->randomElement($sizes),
             'couleurs' => $this->faker->randomElement($colors),

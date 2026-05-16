@@ -61,6 +61,7 @@ class DatabaseSeeder extends Seeder
                 'matiere'     => '100% Coton',
                 'tailles'     => 'S,M,L,XL,XXL',
                 'couleurs'    => 'Blanc,Noir,Bleu,Rouge',
+                'image'       => 'https://placehold.co/600x800?text=T-Shirt+Premium+Coton',
             ],
             [
                 'name'        => 'Jean Slim Stretch',
@@ -72,6 +73,7 @@ class DatabaseSeeder extends Seeder
                 'matiere'     => '98% Coton, 2% Élasthanne',
                 'tailles'     => '36,38,40,42,44',
                 'couleurs'    => 'Bleu foncé,Noir,Gris',
+                'image'       => 'https://placehold.co/600x800?text=Jean+Slim+Stretch',
             ],
             [
                 'name'        => 'Veste en Lin',
@@ -83,6 +85,7 @@ class DatabaseSeeder extends Seeder
                 'matiere'     => '100% Lin',
                 'tailles'     => 'S,M,L,XL',
                 'couleurs'    => 'Beige,Blanc,Kaki',
+                'image'       => 'https://placehold.co/600x800?text=Veste+en+Lin',
             ],
             [
                 'name'        => 'Robe Fleurie Élégante',
@@ -94,6 +97,7 @@ class DatabaseSeeder extends Seeder
                 'matiere'     => 'Viscose',
                 'tailles'     => 'XS,S,M,L',
                 'couleurs'    => 'Rose,Bleu,Vert',
+                'image'       => 'https://placehold.co/600x800?text=Robe+Fleurie+Élégante',
             ],
             [
                 'name'        => 'Pull Cachemire Doux',
@@ -105,6 +109,7 @@ class DatabaseSeeder extends Seeder
                 'matiere'     => '100% Cachemire',
                 'tailles'     => 'S,M,L,XL',
                 'couleurs'    => 'Gris,Beige,Noir,Bordeaux',
+                'image'       => 'https://placehold.co/600x800?text=Pull+Cachemire+Doux',
             ],
             [
                 'name'        => 'Chemise Oxford Classic',
@@ -116,6 +121,7 @@ class DatabaseSeeder extends Seeder
                 'matiere'     => '100% Coton Oxford',
                 'tailles'     => 'S,M,L,XL,XXL',
                 'couleurs'    => 'Blanc,Bleu clair,Rayé',
+                'image'       => 'https://placehold.co/600x800?text=Chemise+Oxford+Classic',
             ],
             // Chaussures
             [
@@ -128,6 +134,7 @@ class DatabaseSeeder extends Seeder
                 'matiere'     => 'Cuir synthétique',
                 'tailles'     => '38,39,40,41,42,43,44,45',
                 'couleurs'    => 'Blanc,Noir,Gris',
+                'image'       => 'https://placehold.co/600x800?text=Sneakers+Urban+Style',
             ],
             [
                 'name'        => 'Boots Cuir Véritable',
@@ -139,6 +146,7 @@ class DatabaseSeeder extends Seeder
                 'matiere'     => 'Cuir véritable',
                 'tailles'     => '37,38,39,40,41,42,43',
                 'couleurs'    => 'Marron,Noir',
+                'image'       => 'https://placehold.co/600x800?text=Boots+Cuir+Véritable',
             ],
             [
                 'name'        => 'Mocassins Classiques',
@@ -150,6 +158,7 @@ class DatabaseSeeder extends Seeder
                 'matiere'     => 'Cuir pleine fleur',
                 'tailles'     => '38,39,40,41,42,43,44',
                 'couleurs'    => 'Marron,Noir,Bleu marine',
+                'image'       => 'https://placehold.co/600x800?text=Mocassins+Classiques',
             ],
             [
                 'name'        => 'Sandales Confort Été',
@@ -161,6 +170,7 @@ class DatabaseSeeder extends Seeder
                 'matiere'     => 'Cuir synthétique',
                 'tailles'     => '36,37,38,39,40,41',
                 'couleurs'    => 'Beige,Marron,Noir',
+                'image'       => 'https://placehold.co/600x800?text=Sandales+Confort+Été',
             ],
             // Accessoires
             [
@@ -173,6 +183,7 @@ class DatabaseSeeder extends Seeder
                 'matiere'     => 'Cuir synthétique',
                 'tailles'     => 'Unique',
                 'couleurs'    => 'Noir,Marron,Beige,Rouge',
+                'image'       => 'https://placehold.co/600x800?text=Sac+à+Main+Élégant',
             ],
             [
                 'name'        => 'Ceinture en Cuir',
@@ -184,6 +195,7 @@ class DatabaseSeeder extends Seeder
                 'matiere'     => 'Cuir véritable',
                 'tailles'     => '80,85,90,95,100',
                 'couleurs'    => 'Noir,Marron',
+                'image'       => 'https://placehold.co/600x800?text=Ceinture+en+Cuir',
             ],
             [
                 'name'        => 'Écharpe Cachemire Douce',
@@ -195,6 +207,7 @@ class DatabaseSeeder extends Seeder
                 'matiere'     => '100% Cachemire',
                 'tailles'     => 'Unique',
                 'couleurs'    => 'Gris,Beige,Rouge,Bleu,Noir',
+                'image'       => 'https://placehold.co/600x800?text=Écharpe+Cachemire+Douce',
             ],
         ];
 

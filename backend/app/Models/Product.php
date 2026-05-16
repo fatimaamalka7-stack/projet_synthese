@@ -4,13 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Product extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'name', 'description', 'price', 'stock', 'category_id',
+        'name', 'slug', 'description', 'price', 'stock', 'category_id',
         'image', 'matiere', 'tailles', 'couleurs'
     ];
 
@@ -18,7 +19,15 @@ class Product extends Model
 
     public function getImageUrlAttribute()
     {
-        return $this->image ? asset('storage/' . $this->image) : null;
+        if (! $this->image) {
+            return null;
+        }
+
+        if (Str::startsWith($this->image, ['http://', 'https://'])) {
+            return $this->image;
+        }
+
+        return asset('storage/' . $this->image);
     }
 
     public function getAverageRatingAttribute()
