@@ -1,31 +1,32 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import api from '../services/api'
 import ProductCard from '../components/Products/ProductCard'
 import { FiArrowRight, FiTruck, FiShield, FiRefreshCw, FiHeart } from 'react-icons/fi'
 
-function HeroBanner() {
+function HeroBanner({ t }) {
   return (
     <div className="relative overflow-hidden bg-gradient-to-br from-primary-700 via-primary-600 to-accent-500 text-white">
       <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-10 left-10 w-64 h-64 rounded-full bg-white blur-3xl"/>
-        <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full bg-accent-400 blur-3xl"/>
+        <div className="absolute top-10 left-10 w-64 h-64 rounded-full bg-white blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full bg-accent-400 blur-3xl" />
       </div>
       <div className="relative max-w-6xl mx-auto px-4 py-20 md:py-28 text-center">
-        <p className="text-primary-200 font-medium tracking-widest text-sm uppercase mb-3">Nouvelle collection 2025</p>
+        <p className="text-primary-200 font-medium tracking-widest text-sm uppercase mb-3">{t('home.new_collection')}</p>
         <h1 className="font-display text-4xl md:text-6xl font-bold mb-5 leading-tight">
-          Mode & Élégance<br/>
-          <span className="text-accent-300">À Votre Portée</span>
+          {t('home.title')}<br />
+          <span className="text-accent-300">{t('home.title_highlight')}</span>
         </h1>
         <p className="text-primary-100 text-lg max-w-xl mx-auto mb-8">
-          Découvrez notre sélection de vêtements et chaussures tendance, pour chaque occasion.
+          {t('home.subtitle')}
         </p>
         <div className="flex gap-4 justify-center flex-wrap">
           <Link to="/vetements" className="px-7 py-3.5 bg-white text-primary-700 font-semibold rounded-2xl hover:bg-primary-50 transition-colors shadow-lg">
-            Vêtements
+            {t('home.btn_clothes')}
           </Link>
           <Link to="/chaussures" className="px-7 py-3.5 bg-white/10 border border-white/30 text-white font-semibold rounded-2xl hover:bg-white/20 transition-colors backdrop-blur-sm">
-            Chaussures
+            {t('home.btn_shoes')}
           </Link>
         </div>
       </div>
@@ -33,19 +34,19 @@ function HeroBanner() {
   )
 }
 
-function Features() {
+function Features({ t }) {
   const items = [
-    { icon: FiTruck,     title: 'Livraison rapide',   desc: 'Livraison en 24-48h partout au Maroc' },
-    { icon: FiShield,    title: 'Paiement sécurisé',  desc: 'Transactions protégées SSL' },
-    { icon: FiRefreshCw, title: 'Retours faciles',    desc: '30 jours pour changer d\'avis' },
-    { icon: FiHeart,     title: 'Qualité garantie',   desc: 'Produits sélectionnés avec soin' },
+    { icon: FiTruck, title: t('home.feature_shipping'), desc: t('home.feature_shipping_desc') },
+    { icon: FiShield, title: t('home.feature_secure'), desc: t('home.feature_secure_desc') },
+    { icon: FiRefreshCw, title: t('home.feature_returns'), desc: t('home.feature_returns_desc') },
+    { icon: FiHeart, title: t('home.feature_quality'), desc: t('home.feature_quality_desc') },
   ]
   return (
     <div className="max-w-6xl mx-auto px-4 py-12 grid grid-cols-2 md:grid-cols-4 gap-4">
       {items.map(({ icon: Icon, title, desc }) => (
         <div key={title} className="text-center p-5 rounded-2xl bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700">
           <div className="w-12 h-12 bg-primary-100 dark:bg-primary-900/30 rounded-xl flex items-center justify-center mx-auto mb-3">
-            <Icon size={22} className="text-primary-600 dark:text-primary-400"/>
+            <Icon size={22} className="text-primary-600 dark:text-primary-400" />
           </div>
           <h4 className="font-semibold text-sm mb-1">{title}</h4>
           <p className="text-xs text-gray-500">{desc}</p>
@@ -55,9 +56,9 @@ function Features() {
   )
 }
 
-function ProductSection({ title, categoryId, emoji, linkTo }) {
+function ProductSection({ title, categoryId, emoji, linkTo, t }) {
   const [products, setProducts] = useState([])
-  const [loading, setLoading]   = useState(true)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     api.get('/products', { params: { category_id: categoryId, per_page: 4 } })
@@ -73,12 +74,12 @@ function ProductSection({ title, categoryId, emoji, linkTo }) {
           <h2 className="font-display text-2xl md:text-3xl font-bold">{title}</h2>
         </div>
         <Link to={linkTo} className="flex items-center gap-1.5 text-primary-600 dark:text-primary-400 font-medium text-sm hover:gap-3 transition-all">
-          Voir tout <FiArrowRight size={16}/>
+          {t('home.see_all')} <FiArrowRight size={16} />
         </Link>
       </div>
       {loading ? (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => <div key={i} className="aspect-[3/4] bg-gray-100 dark:bg-gray-800 rounded-2xl animate-pulse"/>)}
+          {[...Array(4)].map((_, i) => <div key={i} className="aspect-[3/4] bg-gray-100 dark:bg-gray-800 rounded-2xl animate-pulse" />)}
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -87,7 +88,7 @@ function ProductSection({ title, categoryId, emoji, linkTo }) {
       )}
       <div className="text-center mt-6">
         <Link to={linkTo} className="btn-secondary inline-flex items-center gap-2">
-          Voir toutes les {title.toLowerCase()} <FiArrowRight size={16}/>
+          {title === t('nav.clothes') ? t('home.view_all_clothes') : t('home.view_all_shoes')} <FiArrowRight size={16} />
         </Link>
       </div>
     </section>
@@ -95,12 +96,14 @@ function ProductSection({ title, categoryId, emoji, linkTo }) {
 }
 
 export default function HomePage() {
+  const { t } = useTranslation()
   return (
     <div className="animate-fade-in">
-      <HeroBanner />
-      <Features />
-      <ProductSection title="Vêtements"  categoryId={1} emoji="👗" linkTo="/vetements" />
-      <ProductSection title="Chaussures" categoryId={2} emoji="👟" linkTo="/chaussures" />
+      <HeroBanner t={t} />
+      <Features t={t} />
+      <ProductSection title={t('nav.clothes')} categoryId={1} emoji="👗" linkTo="/vetements" t={t} />
+      <ProductSection title={t('nav.shoes')} categoryId={2} emoji="👟" linkTo="/chaussures" t={t} />
     </div>
   )
 }
+

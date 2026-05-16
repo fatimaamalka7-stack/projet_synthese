@@ -5,10 +5,13 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
 })
 
-// Request interceptor - attach token
+// Request interceptor - attach token and locale
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
+  const language = localStorage.getItem('vetemode_language') || 'fr'
   if (token) config.headers.Authorization = `Bearer ${token}`
+  config.headers['X-Locale'] = language
+  config.headers['Accept-Language'] = language
   return config
 })
 
