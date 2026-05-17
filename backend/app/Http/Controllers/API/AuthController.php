@@ -36,7 +36,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'message' => 'Inscription réussie',
+            'message' => __('auth.register_success'),
             'user'    => $user,
             'token'   => $token,
         ], 201);
@@ -49,16 +49,16 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
+        $user = User::where('email', $request->email)->first();
+
+        if (! $user || ! Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
-                'email' => ['Identifiants incorrects.'],
+                'email' => [__('auth.invalid_credentials')],
             ]);
         }
 
-        $user = User::where('email', $request->email)->first();
-
         if ($user->is_blocked) {
-            return response()->json(['message' => 'Compte bloqué. Contactez l\'administrateur.'], 403);
+            return response()->json(['message' => __('auth.account_blocked')], 403);
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -74,7 +74,7 @@ class AuthController extends Controller
     {
         $request->user()->currentAccessToken()->delete();
 
-        return response()->json(['message' => 'Déconnexion réussie']);
+        return response()->json(['message' => __('auth.logout_success')]);
     }
 
     public function user(Request $request)
@@ -107,6 +107,6 @@ class AuthController extends Controller
 
         $user->save();
 
-        return response()->json(['message' => 'Profil mis à jour', 'user' => $user]);
+        return response()->json(['message' => __('auth.profile_updated'), 'user' => $user]);
     }
 }

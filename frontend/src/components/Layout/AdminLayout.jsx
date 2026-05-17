@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import {
@@ -9,15 +10,16 @@ import {
 } from 'react-icons/fi'
 
 const navItems = [
-  { to: '/admin',              icon: FiGrid,          label: 'Dashboard',      end: true },
-  { to: '/admin/produits',     icon: FiPackage,       label: 'Produits' },
-  { to: '/admin/commandes',    icon: FiShoppingBag,   label: 'Commandes' },
-  { to: '/admin/utilisateurs', icon: FiUsers,         label: 'Utilisateurs' },
-  { to: '/admin/avis',         icon: FiMessageSquare, label: 'Avis' },
-  { to: '/admin/parametres',   icon: FiSettings,      label: 'Paramètres' },
+  { to: '/admin', icon: FiGrid, labelKey: 'admin.dashboard', end: true },
+  { to: '/admin/produits', icon: FiPackage, labelKey: 'admin.products' },
+  { to: '/admin/commandes', icon: FiShoppingBag, labelKey: 'admin.orders' },
+  { to: '/admin/utilisateurs', icon: FiUsers, labelKey: 'admin.users' },
+  { to: '/admin/avis', icon: FiMessageSquare, labelKey: 'admin.reviews' },
+  { to: '/admin/parametres', icon: FiSettings, labelKey: 'admin.settings' },
 ]
 
 export default function AdminLayout() {
+  const { t } = useTranslation()
   const { user, logout } = useAuth()
   const { dark, toggle } = useTheme()
   const navigate = useNavigate()
@@ -44,18 +46,18 @@ export default function AdminLayout() {
             <span className="text-xs text-gray-400 font-body font-normal ml-1">Admin</span>
           </span>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
-            <FiX size={18}/>
+            <FiX size={18} />
           </button>
         </div>
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-          {navItems.map(({ to, icon: Icon, label, end }) => (
+          {navItems.map(({ to, icon: Icon, labelKey, end }) => (
             <NavLink key={to} to={to} end={end}
               className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
               onClick={() => setSidebarOpen(false)}>
-              <Icon size={18}/>
-              {label}
+              <Icon size={18} />
+              {t(labelKey)}
             </NavLink>
           ))}
         </nav>
@@ -73,7 +75,7 @@ export default function AdminLayout() {
           </div>
           <button onClick={handleLogout}
             className="sidebar-link w-full text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600">
-            <FiLogOut size={18}/> Déconnexion
+            <FiLogOut size={18} /> Déconnexion
           </button>
         </div>
       </aside>
@@ -83,18 +85,18 @@ export default function AdminLayout() {
         {/* Top bar */}
         <header className="h-16 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between px-4 lg:px-6 shrink-0">
           <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
-            <FiMenu size={20}/>
+            <FiMenu size={20} />
           </button>
           <div className="hidden lg:block">
-            <h1 className="text-sm font-medium text-gray-500">Tableau de bord administrateur</h1>
+            <h1 className="text-sm font-medium text-gray-500">{t('admin.dashboard_overview')}</h1>
           </div>
           <div className="flex items-center gap-2 ml-auto">
             <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg relative">
-              <FiBell size={18}/>
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"/>
+              <FiBell size={18} />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
             </button>
             <button onClick={toggle} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
-              {dark ? <FiSun size={18} className="text-yellow-400"/> : <FiMoon size={18}/>}
+              {dark ? <FiSun size={18} className="text-yellow-400" /> : <FiMoon size={18} />}
             </button>
           </div>
         </header>
