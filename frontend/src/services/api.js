@@ -12,6 +12,12 @@ api.interceptors.request.use((config) => {
   if (token) config.headers.Authorization = `Bearer ${token}`
   config.headers['X-Locale'] = language
   config.headers['Accept-Language'] = language
+
+  // Let axios/browsers set multipart boundaries automatically for FormData requests.
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type']
+  }
+
   return config
 })
 
