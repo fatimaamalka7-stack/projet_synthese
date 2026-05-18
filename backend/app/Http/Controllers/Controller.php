@@ -8,11 +8,7 @@ class Controller extends BaseController
 {
     // Base controller for application HTTP controllers.
 }
-<?php
 
-namespace App\Http\Controllers;
 
-abstract class Controller
-{
-    //
-}
+ 
+?>

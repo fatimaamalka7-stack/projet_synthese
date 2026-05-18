@@ -78,6 +78,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Orders management
         Route::get('/admin/orders', [OrderController::class, 'adminIndex']);
+        Route::get('/admin/orders/unseen-count', [OrderController::class, 'unseenCount']);
+        Route::put('/admin/orders/{id}/seen', [OrderController::class, 'markAsSeen']);
         Route::put('/admin/orders/{id}/status', [OrderController::class, 'updateStatus']);
 
         // Reviews management

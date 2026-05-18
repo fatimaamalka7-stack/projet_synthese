@@ -22,6 +22,9 @@ class StatisticsController extends Controller
             ->groupBy('status')
             ->get();
 
+        $pendingOrders = Order::where('status', 'en_attente')->count();
+        $unseenOrders = Order::whereNull('admin_seen_at')->count();
+
         $revenueByMonth = Order::select(
                 DB::raw('MONTH(created_at) as month'),
                 DB::raw('YEAR(created_at) as year'),
@@ -35,12 +38,14 @@ class StatisticsController extends Controller
             ->get();
 
         return response()->json([
-            'total_users'     => $totalUsers,
-            'total_orders'    => $totalOrders,
-            'total_revenue'   => $totalRevenue,
-            'total_products'  => $totalProducts,
-            'orders_by_status'=> $ordersByStatus,
-            'revenue_by_month'=> $revenueByMonth,
+            'total_users'      => $totalUsers,
+            'total_orders'     => $totalOrders,
+            'total_revenue'    => $totalRevenue,
+            'total_products'   => $totalProducts,
+            'pending_orders'   => $pendingOrders,
+            'unseen_orders'    => $unseenOrders,
+            'orders_by_status' => $ordersByStatus,
+            'revenue_by_month' => $revenueByMonth,
         ]);
     }
 

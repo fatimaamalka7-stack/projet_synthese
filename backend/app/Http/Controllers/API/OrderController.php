@@ -119,9 +119,35 @@ class OrderController extends Controller
             $query->where('status', $request->status);
         }
 
+        if ($request->boolean('unseen')) {
+            $query->whereNull('admin_seen_at');
+        }
+
         $orders = $query->orderBy('created_at', 'desc')->paginate(15);
 
         return response()->json($orders);
+    }
+
+    public function unseenCount()
+    {
+        return response()->json([
+            'count' => Order::whereNull('admin_seen_at')->count(),
+        ]);
+    }
+
+    public function markAsSeen($id)
+    {
+        $order = Order::with(['user', 'items.product'])->findOrFail($id);
+
+        if (! $order->admin_seen_at) {
+            $order->update(['admin_seen_at' => now()]);
+        }
+
+        return response()->json([
+            'message' => 'Commande marquee comme vue',
+            'order' => $order->fresh(['user', 'items.product']),
+            'unseen_count' => Order::whereNull('admin_seen_at')->count(),
+        ]);
     }
 
     public function updateStatus(Request $request, $id)
