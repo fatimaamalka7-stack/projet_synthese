@@ -149,6 +149,8 @@
         "revenue": "Revenus",
         "stats_users_sub": "clients actifs",
         "stats_orders_sub": "au total",
+        "pending_orders": "Commandes en attente",
+        "pending_orders_sub": "à traiter",
         "stats_products_sub": "en catalogue",
         "stats_revenue_sub": "hors annulées",
         "revenue_last_30_days": "Revenus – 30 derniers jours",

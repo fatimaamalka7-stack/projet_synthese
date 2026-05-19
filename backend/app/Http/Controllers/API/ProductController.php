@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use App\Services\AdminNotificationService;
 
 class ProductController extends Controller
 {
@@ -81,6 +83,7 @@ class ProductController extends Controller
 
         $product = Product::create([
             'name'        => $request->name,
+            'slug'        => Str::slug($request->name) . '-' . Str::random(6),
             'description' => $request->description,
             'price'       => $request->price,
             'stock'       => $request->stock,
@@ -90,6 +93,14 @@ class ProductController extends Controller
             'couleurs'    => $request->couleurs,
             'image'       => $imagePath,
         ]);
+
+        AdminNotificationService::create(
+            'product_created',
+            'Produit ajoute',
+            "{$request->user()->name} a ajoute le produit {$product->name}.",
+            $product,
+            $request->user()
+        );
 
         return response()->json(['message' => 'Produit créé', 'product' => $product], 201);
     }

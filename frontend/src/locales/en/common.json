@@ -149,6 +149,8 @@
         "revenue": "Revenue",
         "stats_users_sub": "active customers",
         "stats_orders_sub": "in total",
+        "pending_orders": "Pending orders",
+        "pending_orders_sub": "to process",
         "stats_products_sub": "in catalogue",
         "stats_revenue_sub": "excluding cancelled",
         "revenue_last_30_days": "Revenue – Last 30 days",

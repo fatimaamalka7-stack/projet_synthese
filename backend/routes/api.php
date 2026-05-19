@@ -10,6 +10,7 @@ use App\Http\Controllers\API\ReviewController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\StatisticsController;
 use App\Http\Controllers\API\PaymentController;
+use App\Http\Controllers\API\AdminNotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -90,5 +91,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/admin/statistics', [StatisticsController::class, 'index']);
         Route::get('/admin/statistics/revenue', [StatisticsController::class, 'revenue']);
         Route::get('/admin/statistics/products', [StatisticsController::class, 'popularProducts']);
+
+        // Admin notifications
+        Route::get('/admin/notifications', [AdminNotificationController::class, 'index']);
+        Route::get('/admin/notifications/unread-count', [AdminNotificationController::class, 'unreadCount']);
+        Route::put('/admin/notifications/{id}/read', [AdminNotificationController::class, 'markAsRead']);
+        Route::put('/admin/notifications/read-all', [AdminNotificationController::class, 'markAllAsRead']);
     });
 });

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Services\AdminNotificationService;
 
 class UserController extends Controller
 {
@@ -31,7 +32,18 @@ class UserController extends Controller
             'email' => 'sometimes|email|unique:users,email,'.$id,
             'role'  => 'sometimes|in:client,admin',
         ]);
+        $oldRole = $user->role;
         $user->update($request->only(['name','email','role','phone','address']));
+
+        if ($oldRole !== 'admin' && $user->role === 'admin') {
+            AdminNotificationService::create(
+                'admin_created',
+                'Nouvel administrateur',
+                "{$request->user()->name} a donne le role administrateur a {$user->name}.",
+                $user,
+                $request->user()
+            );
+        }
         return response()->json(['message' => 'Utilisateur mis à jour', 'user' => $user]);
     }
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
-import { FiEye, FiX } from 'react-icons/fi'
+import { FiEye, FiX, FiBell } from 'react-icons/fi'
 
 const statusConfig = {
   en_attente: { label:'En attente', cls:'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
@@ -38,6 +38,23 @@ export default function AdminOrders() {
     } catch { toast.error('Erreur') }
   }
 
+  const openDetail = async (order) => {
+    setDetail(order)
+
+    if (order.admin_seen_at) return
+
+    try {
+      const res = await api.put(`/admin/orders/${order.id}/seen`)
+      const seenOrder = res.data.order
+      setDetail(seenOrder)
+      setOrders(current => current.map(item => item.id === order.id ? seenOrder : item))
+      window.dispatchEvent(new Event('orders:seen'))
+      window.dispatchEvent(new Event('notifications:changed'))
+    } catch {
+      toast.error('Impossible de marquer la commande comme vue')
+    }
+  }
+
   return (
     <div className="space-y-5 animate-fade-in">
       <div>
@@ -61,17 +78,22 @@ export default function AdminOrders() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-700">
               <tr>
-                {['#','Client','Date','Total','Paiement','Statut','Actions'].map(h => (
+                {['#','Client','Date','Total','Paiement','Vue admin','Statut','Actions'].map(h => (
                   <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
               {loading ? [...Array(5)].map((_, i) => (
-                <tr key={i}><td colSpan={7} className="px-4 py-3"><div className="h-5 bg-gray-100 dark:bg-gray-700 rounded animate-pulse"/></td></tr>
+                <tr key={i}><td colSpan={8} className="px-4 py-3"><div className="h-5 bg-gray-100 dark:bg-gray-700 rounded animate-pulse"/></td></tr>
               )) : orders.map(order => (
-                <tr key={order.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                  <td className="px-4 py-3 font-mono text-gray-500">#{order.id}</td>
+                <tr key={order.id} className={`hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors ${!order.admin_seen_at ? 'bg-red-50/60 dark:bg-red-950/20' : ''}`}>
+                  <td className="px-4 py-3 font-mono text-gray-500">
+                    <div className="flex items-center gap-2">
+                      {!order.admin_seen_at && <span className="w-2 h-2 rounded-full bg-red-500" />}
+                      #{order.id}
+                    </div>
+                  </td>
                   <td className="px-4 py-3">
                     <p className="font-medium">{order.user?.name}</p>
                     <p className="text-xs text-gray-400">{order.user?.email}</p>
@@ -79,6 +101,15 @@ export default function AdminOrders() {
                   <td className="px-4 py-3 text-gray-500 text-xs">{new Date(order.created_at).toLocaleDateString('fr-FR')}</td>
                   <td className="px-4 py-3 font-semibold text-primary-600">{Number(order.total).toFixed(2)} DH</td>
                   <td className="px-4 py-3 capitalize text-gray-500">{order.payment_method}</td>
+                  <td className="px-4 py-3">
+                    {order.admin_seen_at ? (
+                      <span className="text-xs font-semibold px-2 py-1 rounded-lg bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300">Vue</span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-lg bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300">
+                        <FiBell size={12} /> Nouvelle
+                      </span>
+                    )}
+                  </td>
                   <td className="px-4 py-3">
                     <select value={order.status}
                       onChange={e => updateStatus(order.id, e.target.value)}
@@ -89,7 +120,7 @@ export default function AdminOrders() {
                     </select>
                   </td>
                   <td className="px-4 py-3">
-                    <button onClick={() => setDetail(order)} className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-500">
+                    <button onClick={() => openDetail(order)} className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-500">
                       <FiEye size={15}/>
                     </button>
                   </td>

@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\User;
 use App\Models\Product;
 use App\Models\OrderItem;
+use App\Models\AdminNotification;
 use Illuminate\Support\Facades\DB;
 
 class StatisticsController extends Controller
@@ -24,6 +25,7 @@ class StatisticsController extends Controller
 
         $pendingOrders = Order::where('status', 'en_attente')->count();
         $unseenOrders = Order::whereNull('admin_seen_at')->count();
+        $unreadNotifications = AdminNotification::unread()->count();
 
         $revenueByMonth = Order::select(
                 DB::raw('MONTH(created_at) as month'),
@@ -44,6 +46,7 @@ class StatisticsController extends Controller
             'total_products'   => $totalProducts,
             'pending_orders'   => $pendingOrders,
             'unseen_orders'    => $unseenOrders,
+            'unread_notifications' => $unreadNotifications,
             'orders_by_status' => $ordersByStatus,
             'revenue_by_month' => $revenueByMonth,
         ]);
