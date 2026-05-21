@@ -5,6 +5,10 @@ import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
 import toast from 'react-hot-toast'
 import { FiCreditCard, FiTruck, FiDollarSign } from 'react-icons/fi'
+import { loadStripe } from '@stripe/stripe-js'
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
 
 export default function CheckoutPage() {
   const { cart, total, fetchCart } = useCart()
@@ -13,6 +17,7 @@ export default function CheckoutPage() {
   const [address, setAddress]   = useState(user?.address || '')
   const [method, setMethod]     = useState('livraison')
   const [loading, setLoading]   = useState(false)
+  const [showCardForm, setShowCardForm] = useState(false)
 
   const items = cart?.items || []
 
@@ -25,6 +30,8 @@ export default function CheckoutPage() {
   const handleOrder = async (e) => {
     e.preventDefault()
     if (!address.trim()) { toast.error('Veuillez entrer une adresse de livraison'); return }
+    if (method === 'carte') return // le paiement carte est géré par CardPaymentForm
+
     setLoading(true)
     try {
       const res = await api.post('/orders', { payment_method: method, address })
@@ -33,6 +40,58 @@ export default function CheckoutPage() {
     } catch (err) {
       toast.error(err.response?.data?.message || 'Erreur lors de la commande')
     } finally { setLoading(false) }
+  }
+
+  function CardPaymentForm({ onSuccess }) {
+    const stripe = useStripe()
+    const elements = useElements()
+    const [processing, setProcessing] = useState(false)
+
+    const handleCardPayment = async (e) => {
+      e.preventDefault()
+      if (!stripe || !elements) return
+      setProcessing(true)
+      try {
+        // Create PaymentIntent on the server (amount computed from cart)
+        const intentRes = await api.post('/payments/create-intent')
+        const clientSecret = intentRes.data.client_secret
+
+        const card = elements.getElement(CardElement)
+        if (!card) {
+          toast.error('Carte bancaire non prête. Réessayez.');
+          return
+        }
+        const result = await stripe.confirmCardPayment(clientSecret, {
+          payment_method: {
+            card,
+            billing_details: { name: user?.name, email: user?.email }
+          }
+        })
+
+        if (result.error) {
+          toast.error(result.error.message || 'Erreur lors du paiement')
+        } else if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
+          // create the order now that payment succeeded
+          const res = await api.post('/orders', { payment_method: 'carte', address })
+          await fetchCart()
+          toast.success('Paiement effectué et commande créée')
+          onSuccess(res.data.order)
+        }
+      } catch (err) {
+        toast.error(err.response?.data?.message || 'Erreur lors du paiement')
+      } finally { setProcessing(false) }
+    }
+
+    return (
+      <form onSubmit={handleCardPayment} className="space-y-3">
+        <div className="p-3 border rounded-md">
+          <CardElement options={{ hidePostalCode: true }} />
+        </div>
+        <button type="submit" disabled={!stripe || processing} className="btn-primary w-full">
+          {processing ? 'Traitement paiement...' : 'Payer par carte'}
+        </button>
+      </form>
+    )
   }
 
   return (
@@ -54,8 +113,17 @@ export default function CheckoutPage() {
             <div className="space-y-3">
               {paymentMethods.map(({ value, label, icon: Icon, desc }) => (
                 <label key={value} className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                  method === value ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-600 hover:border-gray-300'}`}>
-                  <input type="radio" name="payment" value={value} checked={method===value} onChange={() => setMethod(value)} className="sr-only"/>
+                  method === value ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-600 hover:border-gray-300'}` }>
+                  <input
+                    type="radio"
+                    name="payment"
+                    value={value}
+                    checked={method===value}
+                    onChange={() => {
+                      setMethod(value)
+                      if (value !== 'carte') setShowCardForm(false)
+                    }}
+                    className="sr-only"/>
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${method===value ? 'bg-primary-100 dark:bg-primary-800' : 'bg-gray-100 dark:bg-gray-700'}`}>
                     <Icon size={18} className={method===value ? 'text-primary-600' : 'text-gray-500'}/>
                   </div>
@@ -87,9 +155,30 @@ export default function CheckoutPage() {
               <span className="text-primary-700 dark:text-primary-400">{Number(total).toFixed(2)} DH</span>
             </div>
           </div>
-          <button type="submit" disabled={loading || items.length === 0} className="btn-primary w-full">
-            {loading ? 'Traitement...' : 'Confirmer la commande'}
-          </button>
+          {method === 'carte' ? (
+            <>
+              {!showCardForm ? (
+                <button
+                  type="button"
+                  onClick={() => setShowCardForm(true)}
+                  className="btn-primary w-full"
+                  disabled={loading || items.length === 0}
+                >
+                  Payer par carte
+                </button>
+              ) : (
+                <Elements stripe={stripePromise}>
+                  <CardPaymentForm
+                    onSuccess={(order) => navigate('/commande-confirmee', { state: { order } })}
+                  />
+                </Elements>
+              )}
+            </>
+          ) : (
+            <button type="submit" disabled={loading || items.length === 0} className="btn-primary w-full">
+              {loading ? 'Traitement...' : 'Confirmer la commande'}
+            </button>
+          )}
         </div>
       </form>
     </div>

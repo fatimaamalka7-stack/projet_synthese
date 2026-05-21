@@ -79,6 +79,10 @@
         "clear_cart": "Vider le panier",
         "quantity": "Quantité",
         "remove": "Supprimer"
+    ,
+        "login_required": "Connectez-vous pour ajouter au panier",
+        "added_success": "Produit ajouté au panier !",
+        "removed_success": "Produit retiré du panier"
     },
     "checkout": {
         "title": "Finaliser la commande",
@@ -109,7 +113,8 @@
         "status_processing": "En traitement",
         "status_shipped": "Expédiée",
         "status_delivered": "Livrée",
-        "status_cancelled": "Annulée"
+        "status_cancelled": "Annulée",
+        "status_returned": "Retournée"
     },
     "profile": {
         "title": "Mon Profil",

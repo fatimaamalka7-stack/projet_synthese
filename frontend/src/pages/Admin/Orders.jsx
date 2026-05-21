@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
-import { FiEye, FiX, FiBell } from 'react-icons/fi'
+import { FiEye, FiX, FiBell, FiRotateCw } from 'react-icons/fi'
 
 const statusConfig = {
   en_attente: { label:'En attente', cls:'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
   expediee:   { label:'Expédiée',   cls:'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
   livree:     { label:'Livrée',     cls:'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
   annulee:    { label:'Annulée',    cls:'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
+  retournee:  { label:'Retournée',  cls:'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
 }
 
 export default function AdminOrders() {
@@ -21,7 +22,9 @@ export default function AdminOrders() {
   const load = () => {
     setLoading(true)
     const params = { page, per_page: 15 }
-    if (filter) params.status = filter
+    if (filter) {
+      params.status = filter
+    }
     api.get('/admin/orders', { params })
       .then(r => { setOrders(r.data.data || []); setMeta(r.data) })
       .finally(() => setLoading(false))
@@ -36,6 +39,17 @@ export default function AdminOrders() {
       load()
       if (detail?.id === id) setDetail(d => ({ ...d, status }))
     } catch { toast.error('Erreur') }
+  }
+
+  const returnOrder = async (id) => {
+    try {
+      await api.put(`/admin/orders/${id}/return`)
+      toast.success('Commande retournée et stock restauré')
+      load()
+      if (detail?.id === id) setDetail(d => ({ ...d, returned_at: new Date().toISOString() }))
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Impossible de traiter le retour')
+    }
   }
 
   const openDetail = async (order) => {
@@ -64,7 +78,7 @@ export default function AdminOrders() {
 
       {/* Filter */}
       <div className="flex gap-2 flex-wrap">
-        {[['','Toutes'], ['en_attente','En attente'], ['expediee','Expédiée'], ['livree','Livrée'], ['annulee','Annulée']].map(([v,l]) => (
+        {[['','Toutes'], ['en_attente','En attente'], ['expediee','Expédiée'], ['livree','Livrée'], ['annulee','Annulée'], ['retournee','Retournée']].map(([v,l]) => (
           <button key={v} onClick={() => { setFilter(v); setPage(1) }}
             className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${filter===v ? 'bg-primary-600 text-white' : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-primary-300'}`}>
             {l}
@@ -111,18 +125,23 @@ export default function AdminOrders() {
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    <select value={order.status}
+                    <select value={order.returned_at ? 'retournee' : order.status}
                       onChange={e => updateStatus(order.id, e.target.value)}
-                      className={`text-xs font-semibold px-2 py-1.5 rounded-lg border-0 cursor-pointer ${statusConfig[order.status]?.cls}`}>
+                      className={`text-xs font-semibold px-2 py-1.5 rounded-lg border-0 cursor-pointer ${statusConfig[order.returned_at ? 'retournee' : order.status]?.cls}`}>
                       {Object.entries(statusConfig).map(([v,{label}]) => (
                         <option key={v} value={v}>{label}</option>
                       ))}
                     </select>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 flex items-center gap-2">
                     <button onClick={() => openDetail(order)} className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-500">
                       <FiEye size={15}/>
                     </button>
+                    {order.status === 'livree' && !order.returned_at && (new Date() - new Date(order.delivered_at ?? order.created_at)) <= 24 * 60 * 60 * 1000 && (
+                      <button onClick={() => returnOrder(order.id)} className="p-2 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 text-purple-500" title="Retourner la commande">
+                        <FiRotateCw size={15}/>
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

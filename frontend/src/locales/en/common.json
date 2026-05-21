@@ -79,6 +79,10 @@
         "clear_cart": "Clear cart",
         "quantity": "Quantity",
         "remove": "Remove"
+    ,
+        "login_required": "Log in to add to cart",
+        "added_success": "Product added to cart!",
+        "removed_success": "Product removed from cart"
     },
     "checkout": {
         "title": "Complete Your Order",
@@ -109,7 +113,8 @@
         "status_processing": "Processing",
         "status_shipped": "Shipped",
         "status_delivered": "Delivered",
-        "status_cancelled": "Cancelled"
+        "status_cancelled": "Cancelled",
+        "status_returned": "Returned"
     },
     "profile": {
         "title": "My Profile",

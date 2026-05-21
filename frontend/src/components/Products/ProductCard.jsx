@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom'
 import { FiShoppingCart, FiStar, FiMessageCircle } from 'react-icons/fi'
 import { useCart } from '../../context/CartContext'
+import { useTranslation } from 'react-i18next'
 
 export default function ProductCard({ product }) {
   const { addToCart } = useCart()
+  const { t } = useTranslation()
 
   const stars = Array.from({ length: 5 }, (_, i) => (
     <FiStar key={i} size={12} className={i < Math.round(product.average_rating || 0) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'} />
@@ -22,7 +24,7 @@ export default function ProductCard({ product }) {
         )}
         {product.stock === 0 && (
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-            <span className="bg-white text-gray-800 text-xs font-bold px-3 py-1 rounded-full">Rupture de stock</span>
+            <span className="bg-white text-gray-800 text-xs font-bold px-3 py-1 rounded-full">{t('product_detail.out_of_stock')}</span>
           </div>
         )}
         <div className="absolute top-3 left-3">
@@ -56,7 +58,7 @@ export default function ProductCard({ product }) {
               disabled={product.stock === 0}
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-medium transition-colors">
               <FiShoppingCart size={13}/>
-              Ajouter
+              {t('button.add')}
             </button>
           </div>
         </div>

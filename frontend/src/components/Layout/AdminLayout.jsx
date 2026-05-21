@@ -59,7 +59,7 @@ export default function AdminLayout() {
 
     loadUnseenOrders()
     loadNotifications()
-    const interval = window.setInterval(refreshAdminBadges, 30000)
+    const interval = window.setInterval(refreshAdminBadges, 5000)
     window.addEventListener('orders:seen', refreshAdminBadges)
     window.addEventListener('notifications:changed', refreshAdminBadges)
 
