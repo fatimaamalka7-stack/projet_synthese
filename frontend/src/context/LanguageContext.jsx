@@ -7,6 +7,7 @@ const STORAGE_KEY = 'vetemode_language'
 const languages = [
     { code: 'fr', label: 'Français' },
     { code: 'en', label: 'English' },
+    { code: 'ar', label: 'العربية' },
 ]
 
 export function LanguageProvider({ children }) {

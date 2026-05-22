@@ -7,8 +7,10 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Cart;
 use App\Models\Product;
+use App\Models\AdminNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Services\AdminNotificationService;
 
 class OrderController extends Controller
 {
@@ -62,6 +64,14 @@ class OrderController extends Controller
             DB::commit();
 
             $order->load('items.product');
+
+            AdminNotificationService::create(
+                'order_created',
+                'Nouvelle commande',
+                "Commande #{$order->id} passee par {$request->user()->name} pour {$order->total} DH.",
+                $order,
+                $request->user()
+            );
 
             return response()->json([
                 'message' => 'Commande passée avec succès',
@@ -119,9 +129,42 @@ class OrderController extends Controller
             $query->where('status', $request->status);
         }
 
+        if ($request->boolean('unseen')) {
+            $query->whereNull('admin_seen_at');
+        }
+
         $orders = $query->orderBy('created_at', 'desc')->paginate(15);
 
         return response()->json($orders);
+    }
+
+    public function unseenCount()
+    {
+        return response()->json([
+            'count' => Order::whereNull('admin_seen_at')->count(),
+        ]);
+    }
+
+    public function markAsSeen($id)
+    {
+        $order = Order::with(['user', 'items.product'])->findOrFail($id);
+
+        if (! $order->admin_seen_at) {
+            $order->update(['admin_seen_at' => now()]);
+        }
+
+        AdminNotification::where('type', 'order_created')
+            ->where('notifiable_type', Order::class)
+            ->where('notifiable_id', $order->id)
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+
+        return response()->json([
+            'message' => 'Commande marquee comme vue',
+            'order' => $order->fresh(['user', 'items.product']),
+            'unseen_count' => Order::whereNull('admin_seen_at')->count(),
+            'unread_notifications' => AdminNotification::unread()->count(),
+        ]);
     }
 
     public function updateStatus(Request $request, $id)

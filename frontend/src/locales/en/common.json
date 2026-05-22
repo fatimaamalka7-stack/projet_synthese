@@ -62,6 +62,7 @@
         "sizes": "Sizes",
         "colors": "Colors",
         "similar_products": "Similar products",
+        "review_prompt": "to leave a review",
         "back_link": "Back"
     },
     "cart": {
@@ -149,6 +150,8 @@
         "revenue": "Revenue",
         "stats_users_sub": "active customers",
         "stats_orders_sub": "in total",
+        "pending_orders": "Pending orders",
+        "pending_orders_sub": "to process",
         "stats_products_sub": "in catalogue",
         "stats_revenue_sub": "excluding cancelled",
         "revenue_last_30_days": "Revenue – Last 30 days",
@@ -162,10 +165,6 @@
         "description": "Your fashion destination for trendy clothes and shoes in Morocco.",
         "navigation": "Navigation",
         "account": "My Account"
-    },
-    "product_detail": {
-        "review_prompt": "to leave a review",
-        "back_link": "Back"
     },
     "auth": {
         "login_title": "Welcome back!",

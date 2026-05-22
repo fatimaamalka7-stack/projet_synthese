@@ -9,7 +9,9 @@ use App\Http\Controllers\API\OrderController;
 use App\Http\Controllers\API\ReviewController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\StatisticsController;
+use App\Http\Controllers\API\ReportsController;
 use App\Http\Controllers\API\PaymentController;
+use App\Http\Controllers\API\AdminNotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -77,17 +79,35 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/admin/users/{id}', [UserController::class, 'destroy']);
         Route::put('/admin/users/{id}/block', [UserController::class, 'block']);
 
+        // User archives management
+        Route::get('/admin/users-archives', [UserController::class, 'listArchives']);
+        Route::get('/admin/users-archives/{id}', [UserController::class, 'showArchive']);
+        Route::post('/admin/users-archives/{id}/restore', [UserController::class, 'restoreArchive']);
+        Route::delete('/admin/users-archives/{id}', [UserController::class, 'deleteArchive']);
+
         // Orders management
         Route::get('/admin/orders', [OrderController::class, 'adminIndex']);
+        Route::get('/admin/orders/unseen-count', [OrderController::class, 'unseenCount']);
+        Route::put('/admin/orders/{id}/seen', [OrderController::class, 'markAsSeen']);
         Route::put('/admin/orders/{id}/status', [OrderController::class, 'updateStatus']);
 
         // Reviews management
         Route::get('/admin/reviews', [ReviewController::class, 'adminIndex']);
         Route::put('/admin/reviews/{id}/validate', [ReviewController::class, 'validate']);
 
+        // Reports
+        Route::get('/admin/reports', [ReportsController::class, 'index']);
+        Route::get('/admin/reports/pdf', [ReportsController::class, 'pdf']);
+
         // Statistics
         Route::get('/admin/statistics', [StatisticsController::class, 'index']);
         Route::get('/admin/statistics/revenue', [StatisticsController::class, 'revenue']);
         Route::get('/admin/statistics/products', [StatisticsController::class, 'popularProducts']);
+
+        // Admin notifications
+        Route::get('/admin/notifications', [AdminNotificationController::class, 'index']);
+        Route::get('/admin/notifications/unread-count', [AdminNotificationController::class, 'unreadCount']);
+        Route::put('/admin/notifications/{id}/read', [AdminNotificationController::class, 'markAsRead']);
+        Route::put('/admin/notifications/read-all', [AdminNotificationController::class, 'markAllAsRead']);
     });
 });

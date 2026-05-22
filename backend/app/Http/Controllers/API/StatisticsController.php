@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\User;
 use App\Models\Product;
 use App\Models\OrderItem;
+use App\Models\AdminNotification;
 use Illuminate\Support\Facades\DB;
 
 class StatisticsController extends Controller
@@ -22,6 +23,10 @@ class StatisticsController extends Controller
             ->groupBy('status')
             ->get();
 
+        $pendingOrders = Order::where('status', 'en_attente')->count();
+        $unseenOrders = Order::whereNull('admin_seen_at')->count();
+        $unreadNotifications = AdminNotification::unread()->count();
+
         $revenueByMonth = Order::select(
                 DB::raw('MONTH(created_at) as month'),
                 DB::raw('YEAR(created_at) as year'),
@@ -35,12 +40,15 @@ class StatisticsController extends Controller
             ->get();
 
         return response()->json([
-            'total_users'     => $totalUsers,
-            'total_orders'    => $totalOrders,
-            'total_revenue'   => $totalRevenue,
-            'total_products'  => $totalProducts,
-            'orders_by_status'=> $ordersByStatus,
-            'revenue_by_month'=> $revenueByMonth,
+            'total_users'      => $totalUsers,
+            'total_orders'     => $totalOrders,
+            'total_revenue'    => $totalRevenue,
+            'total_products'   => $totalProducts,
+            'pending_orders'   => $pendingOrders,
+            'unseen_orders'    => $unseenOrders,
+            'unread_notifications' => $unreadNotifications,
+            'orders_by_status' => $ordersByStatus,
+            'revenue_by_month' => $revenueByMonth,
         ]);
     }
 

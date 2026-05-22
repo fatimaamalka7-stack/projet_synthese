@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use App\Services\AdminNotificationService;
 
 class ProductController extends Controller
 {
@@ -13,21 +15,24 @@ class ProductController extends Controller
     {
         $query = Product::with(['category', 'reviews']);
 
-        // Filtering
-        if ($request->category_id) {
+        if ($request->filled('category_id')) {
             $query->where('category_id', $request->category_id);
         }
 
-        if ($request->search) {
-            $query->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('description', 'like', '%' . $request->search . '%');
+        if ($request->filled('search')) {
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('description', 'like', '%' . $search . '%');
+            });
         }
 
-        if ($request->min_price) {
+        if ($request->filled('min_price')) {
             $query->where('price', '>=', $request->min_price);
         }
 
-        if ($request->max_price) {
+        if ($request->filled('max_price')) {
             $query->where('price', '<=', $request->max_price);
         }
 
@@ -39,9 +44,16 @@ class ProductController extends Controller
             $query->orderBy('created_at', 'desc');
         }
 
-        $products = $query->paginate(12);
+        // If a per_page is provided, return a paginated response (frontend expects pagination format)
+        if ($request->filled('per_page')) {
+            $perPage = intval($request->per_page) ?: 12;
+            $products = $query->paginate($perPage);
+            return response()->json($products);
+        }
 
-        return response()->json($products);
+        // Otherwise return all products wrapped in a `data` key so frontend using `r.data.data` works
+        $products = $query->get();
+        return response()->json(['data' => $products]);
     }
 
     public function show($id)
@@ -81,6 +93,7 @@ class ProductController extends Controller
 
         $product = Product::create([
             'name'        => $request->name,
+            'slug'        => Str::slug($request->name) . '-' . Str::random(6),
             'description' => $request->description,
             'price'       => $request->price,
             'stock'       => $request->stock,
@@ -90,6 +103,14 @@ class ProductController extends Controller
             'couleurs'    => $request->couleurs,
             'image'       => $imagePath,
         ]);
+
+        AdminNotificationService::create(
+            'product_created',
+            'Produit ajoute',
+            "{$request->user()->name} a ajoute le produit {$product->name}.",
+            $product,
+            $request->user()
+        );
 
         return response()->json(['message' => 'Produit créé', 'product' => $product], 201);
     }

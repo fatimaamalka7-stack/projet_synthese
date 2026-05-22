@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use App\Services\AdminNotificationService;
 
 class AuthController extends Controller
 {
@@ -32,6 +33,14 @@ class AuthController extends Controller
             'address'  => $request->address,
             'role'     => $role,
         ]);
+
+        AdminNotificationService::create(
+            $role === 'admin' ? 'admin_created' : 'user_registered',
+            $role === 'admin' ? 'Nouvel administrateur' : 'Nouvel utilisateur',
+            "{$user->name} ({$user->email}) vient de creer un compte {$role}.",
+            $user,
+            $user
+        );
 
         $token = $user->createToken('auth_token')->plainTextToken;
 

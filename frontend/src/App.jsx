@@ -25,7 +25,9 @@ import AdminDashboard from './pages/Admin/Dashboard'
 import AdminProducts from './pages/Admin/Products'
 import AdminOrders from './pages/Admin/Orders'
 import AdminUsers from './pages/Admin/Users'
+import AdminUserArchives from './pages/Admin/UserArchives'
 import AdminReviews from './pages/Admin/Reviews'
+import AdminReports from './pages/Admin/Reports'
 import AdminSettings from './pages/Admin/Settings'
 
 function PrivateRoute({ children }) {
@@ -73,7 +75,9 @@ export default function App() {
                 <Route path="produits" element={<AdminProducts />} />
                 <Route path="commandes" element={<AdminOrders />} />
                 <Route path="utilisateurs" element={<AdminUsers />} />
+                <Route path="utilisateurs-archives" element={<AdminUserArchives />} />
                 <Route path="avis" element={<AdminReviews />} />
+                <Route path="rapports" element={<AdminReports />} />
                 <Route path="parametres" element={<AdminSettings />} />
               </Route>
             </Routes>

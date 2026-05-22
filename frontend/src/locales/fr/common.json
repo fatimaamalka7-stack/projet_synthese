@@ -52,16 +52,17 @@
         "in_stock": "en stock",
         "out_of_stock": "Rupture de stock",
         "add_to_cart": "Ajouter au panier",
-        "reviews": "Avis clients",
-        "no_reviews": "Aucun avis pour l'instant. Soyez le premier!",
-        "rating": "avis",
-        "submit_review": "Soumettre un avis",
-        "comment_placeholder": "Partagez votre expérience...",
+        "reviews": "Avis",
+        "no_reviews": "Aucun avis pour le moment",
+        "rating": "Note",
+        "submit_review": "Publier un avis",
+        "comment_placeholder": "Écrire votre commentaire...",
         "review_pending": "Avis soumis, en attente de validation",
         "material": "Matière",
         "sizes": "Tailles",
         "colors": "Couleurs",
         "similar_products": "Produits similaires",
+        "review_prompt": "pour laisser un avis",
         "back_link": "Retour"
     },
     "cart": {
@@ -149,6 +150,8 @@
         "revenue": "Revenus",
         "stats_users_sub": "clients actifs",
         "stats_orders_sub": "au total",
+        "pending_orders": "Commandes en attente",
+        "pending_orders_sub": "à traiter",
         "stats_products_sub": "en catalogue",
         "stats_revenue_sub": "hors annulées",
         "revenue_last_30_days": "Revenus – 30 derniers jours",
@@ -162,10 +165,6 @@
         "description": "Votre destination mode pour des vêtements et chaussures tendance au Maroc.",
         "navigation": "Navigation",
         "account": "Mon Compte"
-    },
-    "product_detail": {
-        "review_prompt": "pour laisser un avis",
-        "back_link": "Retour"
     },
     "auth": {
         "login_title": "Bon retour!",

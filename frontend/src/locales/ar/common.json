@@ -1,0 +1,19 @@
+{
+    "product_detail": {
+        "in_stock": "متوفر",
+        "out_of_stock": "غير متوفر",
+        "add_to_cart": "أضف إلى السلة",
+        "reviews": "تقييمات العملاء",
+        "no_reviews": "لا توجد تقييمات بعد. كن الأول!",
+        "rating": "التقييم",
+        "submit_review": "نشر تقييم",
+        "comment_placeholder": "اكتب تجربتك هنا...",
+        "review_pending": "تم إرسال التقييم، في انتظار الموافقة",
+        "material": "الخامة",
+        "sizes": "المقاسات",
+        "colors": "الألوان",
+        "similar_products": "منتجات مشابهة",
+        "back_link": "عودة",
+        "review_prompt": "لترك تقييم"
+    }
+}

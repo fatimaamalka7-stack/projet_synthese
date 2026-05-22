@@ -5,6 +5,8 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use App\Services\AdminNotificationService;
 
 class CategoryController extends Controller
 {
@@ -25,7 +27,18 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $request->validate(['name' => 'required|string|max:100|unique:categories']);
-        $category = Category::create(['name' => $request->name]);
+        $category = Category::create([
+            'name' => $request->name,
+            'slug' => Str::slug($request->name) . '-' . Str::random(6),
+        ]);
+
+        AdminNotificationService::create(
+            'category_created',
+            'Categorie ajoutee',
+            "{$request->user()->name} a ajoute la categorie {$category->name}.",
+            $category,
+            $request->user()
+        );
         return response()->json(['message' => 'Catégorie créée', 'category' => $category], 201);
     }
 

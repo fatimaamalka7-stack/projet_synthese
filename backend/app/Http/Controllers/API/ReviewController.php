@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Review;
 use Illuminate\Http\Request;
+use App\Services\AdminNotificationService;
 
 class ReviewController extends Controller
 {
@@ -44,6 +45,16 @@ class ReviewController extends Controller
             'comment'      => $request->comment,
             'is_validated' => false,
         ]);
+
+        $review->load('product:id,name');
+
+        AdminNotificationService::create(
+            'review_created',
+            'Nouvel avis client',
+            "{$request->user()->name} a ajoute un avis {$review->rating}/5 sur {$review->product?->name}.",
+            $review,
+            $request->user()
+        );
 
         return response()->json(['message' => 'Avis soumis, en attente de validation', 'review' => $review], 201);
     }

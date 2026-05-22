@@ -52,7 +52,7 @@ export default function ProductDetail() {
     setSubmitting(true)
     try {
       await api.post('/reviews', { product_id: id, ...reviewForm })
-      toast.success('Avis soumis, en attente de validation')
+      toast.success(t('product_detail.review_pending', { defaultValue: 'Avis soumis, en attente de validation' }))
       setReviewForm({ rating: 5, comment: '' })
     } catch (err) {
       toast.error(err.response?.data?.message || 'Erreur')
@@ -78,7 +78,7 @@ export default function ProductDetail() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 animate-fade-in">
       <Link to={-1} className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 mb-6 text-sm">
-        <FiArrowLeft size={16} /> {t('product_detail.back_link')}
+        <FiArrowLeft size={16} /> {t('product_detail.back_link', { defaultValue: 'Retour' })}
       </Link>
 
       <div className="grid md:grid-cols-2 gap-10 mb-14">
@@ -96,7 +96,7 @@ export default function ProductDetail() {
           <span className="badge bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 text-xs mb-3">
             {product.category?.name}
           </span>
-          <h1 className="font-display text-3xl font-bold mb-2">{product.name}</h1>
+          <h1 className="font-display text-4xl md:text-5xl font-bold tracking-tight mb-3">{product.name}</h1>
 
           <div className="flex items-center gap-2 mb-4">
             <div className="flex">
@@ -107,22 +107,22 @@ export default function ProductDetail() {
             <span className="text-sm text-gray-500">({reviews.length} avis)</span>
           </div>
 
-          <p className="text-3xl font-bold text-primary-700 dark:text-primary-400 mb-4">
+          <p className="text-4xl md:text-5xl font-bold text-primary-700 dark:text-primary-400 mb-4">
             {Number(product.price).toFixed(2)} DH
           </p>
 
-          <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-5">{product.description}</p>
+          <p className="text-base md:text-lg text-gray-600 dark:text-gray-300 leading-7 mb-6 max-w-3xl">{product.description}</p>
 
-          <div className="space-y-2 mb-5 text-sm">
-            {product.matiere && <div className="flex gap-2"><span className="font-medium w-20">{t('product_detail.material')}:</span><span className="text-gray-600 dark:text-gray-400">{product.matiere}</span></div>}
-            {product.tailles && <div className="flex gap-2"><span className="font-medium w-20">{t('product_detail.sizes')}:</span><span className="text-gray-600 dark:text-gray-400">{product.tailles}</span></div>}
-            {product.couleurs && <div className="flex gap-2"><span className="font-medium w-20">{t('product_detail.colors')}:</span><span className="text-gray-600 dark:text-gray-400">{product.couleurs}</span></div>}
+          <div className="space-y-3 mb-6 text-sm text-gray-700 dark:text-gray-300">
+            {product.matiere && <div className="flex gap-2"><span className="font-medium w-24">{t('product_detail.material', { defaultValue: 'Matière' })}:</span><span className="text-gray-600 dark:text-gray-400">{product.matiere}</span></div>}
+            {product.tailles && <div className="flex gap-2"><span className="font-medium w-24">{t('product_detail.sizes', { defaultValue: 'Tailles' })}:</span><span className="text-gray-600 dark:text-gray-400">{product.tailles}</span></div>}
+            {product.couleurs && <div className="flex gap-2"><span className="font-medium w-24">{t('product_detail.colors', { defaultValue: 'Couleurs' })}:</span><span className="text-gray-600 dark:text-gray-400">{product.couleurs}</span></div>}
           </div>
 
           <div className="flex items-center gap-2 mb-4 text-sm">
             <FiPackage size={16} className={product.stock > 0 ? 'text-green-500' : 'text-red-500'} />
             <span className={product.stock > 0 ? 'text-green-600 dark:text-green-400 font-medium' : 'text-red-500'}>
-              {product.stock > 0 ? `${product.stock} ${t('product_detail.in_stock')}` : t('product_detail.out_of_stock')}
+              {product.stock > 0 ? `${product.stock} ${t('product_detail.in_stock', { defaultValue: 'en stock' })}` : t('product_detail.out_of_stock', { defaultValue: 'Rupture de stock' })}
             </span>
           </div>
 
@@ -134,7 +134,7 @@ export default function ProductDetail() {
                 <button onClick={() => setQty(q => Math.min(product.stock, q + 1))} className="px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 font-bold">+</button>
               </div>
               <button onClick={handleAddToCart} className="btn-primary flex items-center gap-2 flex-1">
-                <FiShoppingCart size={16} /> {t('product_detail.add_to_cart')}
+                <FiShoppingCart size={16} /> {t('product_detail.add_to_cart', { defaultValue: 'Ajouter au panier' })}
               </button>
             </div>
           )}
@@ -143,10 +143,10 @@ export default function ProductDetail() {
 
       {/* Reviews */}
       <section id="avis" className="mb-14">
-        <h2 className="font-display text-2xl font-bold mb-6">{t('product_detail.reviews')}</h2>
+        <h2 className="font-display text-3xl md:text-4xl font-bold mb-6">{t('product_detail.reviews', { defaultValue: 'Avis' })}</h2>
 
         {reviews.length === 0 ? (
-          <p className="text-gray-500 mb-6">{t('product_detail.no_reviews')}</p>
+          <p className="text-sm text-gray-500 mb-6">{t('product_detail.no_reviews', { defaultValue: 'Aucun avis pour le moment' })}</p>
         ) : (
           <div className="space-y-4 mb-8">
             {reviews.map(r => (
@@ -167,25 +167,25 @@ export default function ProductDetail() {
         )}
 
         {user ? (
-          <form onSubmit={handleReview} className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-            <h3 className="font-semibold mb-4">{t('product_detail.submit_review')}</h3>
+          <form onSubmit={handleReview} className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 max-w-2xl">
+            <h3 className="text-xl font-semibold mb-4">{t('product_detail.submit_review', { defaultValue: 'Publier un avis' })}</h3>
             <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">{t('product_detail.rating')}</label>
+              <label className="block text-sm font-medium mb-2">{t('product_detail.rating', { defaultValue: 'Note' })}</label>
               <StarRating value={reviewForm.rating} onChange={v => setReviewForm({ ...reviewForm, rating: v })} />
             </div>
             <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">{t('product_detail.comment_placeholder')}</label>
+              <label className="block text-sm font-medium mb-2">{t('product_detail.comment_placeholder', { defaultValue: 'Écrire votre commentaire...' })}</label>
               <textarea value={reviewForm.comment} onChange={e => setReviewForm({ ...reviewForm, comment: e.target.value })}
-                rows={3} className="input-field resize-none" placeholder={t('product_detail.comment_placeholder')} required />
+                rows={4} className="input-field resize-none min-h-[140px]" placeholder={t('product_detail.comment_placeholder', { defaultValue: 'Écrire votre commentaire...' })} required />
             </div>
             <button type="submit" disabled={submitting} className="btn-primary">
-              {submitting ? t('button.loading') : t('product_detail.submit_review')}
+              {submitting ? t('button.loading') : t('product_detail.submit_review', { defaultValue: 'Publier un avis' })}
             </button>
           </form>
         ) : (
-          <div className="bg-primary-50 dark:bg-primary-900/10 rounded-2xl p-5 text-center">
+          <div className="bg-primary-50 dark:bg-primary-900/10 rounded-2xl p-5 text-center shadow-sm">
             <p className="text-gray-600 dark:text-gray-400">
-              <Link to="/login" className="text-primary-600 font-semibold hover:underline">{t('auth.login_button')}</Link> {t('product_detail.review_prompt')}
+              <Link to="/login" className="text-primary-600 font-semibold hover:underline">{t('auth.login_button')}</Link> {t('product_detail.review_prompt', { defaultValue: 'pour laisser un avis' })}
             </p>
           </div>
         )}
@@ -194,8 +194,8 @@ export default function ProductDetail() {
       {/* Similar products */}
       {similar && similar.length > 0 && (
         <section>
-          <h2 className="font-display text-2xl font-bold mb-6">{t('product_detail.similar_products')}</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <h2 className="font-display text-3xl md:text-4xl font-bold mb-6">{t('product_detail.similar_products', { defaultValue: 'Produits similaires' })}</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
             {similar.map(p => <ProductCard key={p.id} product={p} />)}
           </div>
         </section>
