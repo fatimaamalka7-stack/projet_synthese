@@ -1,11 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
-<<<<<<< HEAD
 import { FiEye, FiX, FiBell, FiRotateCw } from 'react-icons/fi'
-=======
 import { FiEye, FiX, FiBell } from 'react-icons/fi'
->>>>>>> origin/ayat
 
 const statusConfig = {
   en_attente: { label:'En attente', cls:'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
@@ -66,7 +63,6 @@ export default function AdminOrders() {
     } catch { toast.error('Erreur') }
   }
 
-<<<<<<< HEAD
   const returnOrder = async (id) => {
     try {
       await api.put(`/admin/orders/${id}/return`)
@@ -78,8 +74,6 @@ export default function AdminOrders() {
     }
   }
 
-=======
->>>>>>> origin/ayat
   const openDetail = async (order) => {
     setDetail(order)
 
@@ -153,11 +147,8 @@ export default function AdminOrders() {
                     )}
                   </td>
                   <td className="px-4 py-3">
-<<<<<<< HEAD
                     <select value={order.returned_at ? 'retournee' : order.status}
-=======
                     <select value={order.status}
->>>>>>> origin/ayat
                       onChange={e => updateStatus(order.id, e.target.value)}
                       className={`text-xs font-semibold px-2 py-1.5 rounded-lg border-0 cursor-pointer ${statusConfig[order.returned_at ? 'retournee' : order.status]?.cls}`}>
                       {Object.entries(statusConfig).map(([v,{label}]) => (
@@ -165,11 +156,8 @@ export default function AdminOrders() {
                       ))}
                     </select>
                   </td>
-<<<<<<< HEAD
                   <td className="px-4 py-3 flex items-center gap-2">
-=======
                   <td className="px-4 py-3">
->>>>>>> origin/ayat
                     <button onClick={() => openDetail(order)} className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-500">
                       <FiEye size={15}/>
                     </button>

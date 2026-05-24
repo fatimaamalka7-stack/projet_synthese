@@ -89,11 +89,8 @@ export default function AdminProducts() {
           <p className="text-gray-500 text-sm">{meta?.total || 0} produits au total</p>
         </div>
         <button onClick={openAdd} className="btn-primary flex items-center gap-2">
-<<<<<<< HEAD
           <FiPlus size={16}/> {t('button.add')}
-=======
           <FiPlus size={16} /> Ajouter
->>>>>>> origin/ayat
         </button>
       </div>
 

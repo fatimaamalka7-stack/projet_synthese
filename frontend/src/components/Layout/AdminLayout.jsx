@@ -47,13 +47,10 @@ export default function AdminLayout() {
         setNotifications(list.data.data || [])
         setUnreadNotifications(count.data.count || 0)
       }).catch(() => {
-<<<<<<< HEAD
         setNotifications([])
-=======
         const [unreadCount, setUnreadCount] = useState(0)
         const [notifications, setNotifications] = useState([])
         const [showNotifications, setShowNotifications] = useState(false)
->>>>>>> origin/ayat
         setUnreadNotifications(0)
       })
     }
@@ -65,11 +62,8 @@ export default function AdminLayout() {
 
     loadUnseenOrders()
     loadNotifications()
-<<<<<<< HEAD
     const interval = window.setInterval(refreshAdminBadges, 5000)
-=======
     const interval = window.setInterval(refreshAdminBadges, 30000)
->>>>>>> origin/ayat
     window.addEventListener('orders:seen', refreshAdminBadges)
     window.addEventListener('notifications:changed', refreshAdminBadges)
 
@@ -131,20 +125,14 @@ export default function AdminLayout() {
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-<<<<<<< HEAD
           {navItems.map(({ to, icon: Icon, labelKey, end, badge }) => (
-=======
           {navItems.map(({ to, icon: Icon, labelKey, label, end, badge }) => (
->>>>>>> origin/ayat
             <NavLink key={to} to={to} end={end}
               className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
               onClick={() => setSidebarOpen(false)}>
               <Icon size={18} />
-<<<<<<< HEAD
               <span className="flex-1">{t(labelKey)}</span>
-=======
               <span className="flex-1">{label ?? t(labelKey)}</span>
->>>>>>> origin/ayat
               {badge === 'orders' && unseenOrders > 0 && (
                 <span className="min-w-[20px] h-5 text-[11px] leading-5 rounded-full bg-red-500 text-white flex items-center justify-center px-1.5">
                   {unseenOrders}
