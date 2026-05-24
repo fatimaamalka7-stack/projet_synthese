@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
 import { FiEye, FiX, FiBell, FiRotateCw } from 'react-icons/fi'
@@ -18,6 +18,7 @@ export default function AdminOrders() {
   const [filter, setFilter]     = useState('')
   const [loading, setLoading]   = useState(true)
   const [detail, setDetail]     = useState(null)
+  const hasMarkedOrdersSeen = useRef(false)
 
   const load = () => {
     setLoading(true)
@@ -26,7 +27,27 @@ export default function AdminOrders() {
       params.status = filter
     }
     api.get('/admin/orders', { params })
-      .then(r => { setOrders(r.data.data || []); setMeta(r.data) })
+      .then(async r => {
+        const loadedOrders = r.data.data || []
+        setOrders(loadedOrders)
+        setMeta(r.data)
+
+        if (!hasMarkedOrdersSeen.current) {
+          hasMarkedOrdersSeen.current = true
+
+          try {
+            const res = await api.put('/admin/orders/seen-all')
+            const seenAt = res.data.seen_at || new Date().toISOString()
+            setOrders(current => current.map(order => (
+              order.admin_seen_at ? order : { ...order, admin_seen_at: seenAt }
+            )))
+            window.dispatchEvent(new Event('orders:seen'))
+            window.dispatchEvent(new Event('notifications:changed'))
+          } catch {
+            hasMarkedOrdersSeen.current = false
+          }
+        }
+      })
       .finally(() => setLoading(false))
   }
 

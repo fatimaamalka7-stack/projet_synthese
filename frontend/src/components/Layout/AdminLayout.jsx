@@ -45,9 +45,7 @@ export default function AdminLayout() {
         setNotifications(list.data.data || [])
         setUnreadNotifications(count.data.count || 0)
       }).catch(() => {
-          const [unreadCount, setUnreadCount] = useState(0)
-          const [notifications, setNotifications] = useState([])
-          const [showNotifications, setShowNotifications] = useState(false)
+        setNotifications([])
         setUnreadNotifications(0)
       })
     }
