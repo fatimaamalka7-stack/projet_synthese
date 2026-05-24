@@ -125,7 +125,6 @@ export default function AdminLayout() {
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-          {navItems.map(({ to, icon: Icon, labelKey, end, badge }) => (
           {navItems.map(({ to, icon: Icon, labelKey, label, end, badge }) => (
             <NavLink key={to} to={to} end={end}
               className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
