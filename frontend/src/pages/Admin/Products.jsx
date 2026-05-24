@@ -8,7 +8,6 @@ const EMPTY = { name: '', description: '', price: '', stock: '', category_id: ''
 
 export default function AdminProducts() {
   const { t } = useTranslation()
-  const [products, setProducts]   = useState([])
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [meta, setMeta] = useState(null)
