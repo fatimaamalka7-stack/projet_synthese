@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
 import { FiEye, FiX, FiBell, FiRotateCw } from 'react-icons/fi'
-import { FiEye, FiX, FiBell } from 'react-icons/fi'
 
 const statusConfig = {
   en_attente: { label:'En attente', cls:'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
@@ -148,7 +147,6 @@ export default function AdminOrders() {
                   </td>
                   <td className="px-4 py-3">
                     <select value={order.returned_at ? 'retournee' : order.status}
-                    <select value={order.status}
                       onChange={e => updateStatus(order.id, e.target.value)}
                       className={`text-xs font-semibold px-2 py-1.5 rounded-lg border-0 cursor-pointer ${statusConfig[order.returned_at ? 'retournee' : order.status]?.cls}`}>
                       {Object.entries(statusConfig).map(([v,{label}]) => (
@@ -166,6 +164,7 @@ export default function AdminOrders() {
                         <FiRotateCw size={15}/>
                       </button>
                     )}
+                  </td>
                   </td>
                 </tr>
               ))}

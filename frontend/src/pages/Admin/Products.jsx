@@ -7,12 +7,9 @@ import { useTranslation } from 'react-i18next'
 const EMPTY = { name: '', description: '', price: '', stock: '', category_id: '', matiere: '', tailles: '', couleurs: '' }
 
 export default function AdminProducts() {
-<<<<<<< HEAD
   const { t } = useTranslation()
   const [products, setProducts]   = useState([])
-=======
   const [products, setProducts] = useState([])
->>>>>>> origin/ayat
   const [categories, setCategories] = useState([])
   const [meta, setMeta] = useState(null)
   const [page, setPage] = useState(1)
