@@ -4,9 +4,9 @@ import toast from 'react-hot-toast'
 import { FiSearch, FiTrash2, FiLock, FiUnlock, FiShield } from 'react-icons/fi'
 
 export default function AdminUsers() {
-  const [users, setUsers]   = useState([])
-  const [meta, setMeta]     = useState(null)
-  const [page, setPage]     = useState(1)
+  const [users, setUsers] = useState([])
+  const [meta, setMeta] = useState(null)
+  const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
 
@@ -27,13 +27,20 @@ export default function AdminUsers() {
     } catch { toast.error('Erreur') }
   }
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id, hasOrders) => {
+    if (hasOrders) {
+      toast.error('Impossible de supprimer cet utilisateur car il possède des commandes.')
+      return
+    }
+
     if (!confirm('Supprimer cet utilisateur définitivement ?')) return
     try {
       await api.delete(`/admin/users/${id}`)
       toast.success('Utilisateur supprimé')
       load()
-    } catch { toast.error('Erreur') }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Erreur')
+    }
   }
 
   const promoteAdmin = async (id) => {
@@ -53,7 +60,7 @@ export default function AdminUsers() {
       </div>
 
       <div className="relative max-w-xs">
-        <FiSearch size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"/>
+        <FiSearch size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
         <input value={search} onChange={e => { setSearch(e.target.value); setPage(1) }}
           placeholder="Rechercher par nom ou email…" className="input-field pl-10 text-sm" />
       </div>
@@ -63,14 +70,14 @@ export default function AdminUsers() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-700">
               <tr>
-                {['Utilisateur','Téléphone','Rôle','Statut','Inscrit le','Actions'].map(h => (
+                {['Utilisateur', 'Téléphone', 'Rôle', 'Statut', 'Inscrit le', 'Actions'].map(h => (
                   <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
-              {loading ? [...Array(5)].map((_,i) => (
-                <tr key={i}><td colSpan={6} className="px-4 py-3"><div className="h-5 bg-gray-100 dark:bg-gray-700 rounded animate-pulse"/></td></tr>
+              {loading ? [...Array(5)].map((_, i) => (
+                <tr key={i}><td colSpan={6} className="px-4 py-3"><div className="h-5 bg-gray-100 dark:bg-gray-700 rounded animate-pulse" /></td></tr>
               )) : users.map(u => (
                 <tr key={u.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
                   <td className="px-4 py-3">
@@ -97,21 +104,27 @@ export default function AdminUsers() {
                   </td>
                   <td className="px-4 py-3 text-gray-500 text-xs">{new Date(u.created_at).toLocaleDateString('fr-FR')}</td>
                   <td className="px-4 py-3">
-                    <div className="flex gap-1">
-                      {u.role !== 'admin' && (
-                        <button onClick={() => promoteAdmin(u.id)} title="Promouvoir admin"
-                          className="p-2 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 text-purple-500 transition-colors">
-                          <FiShield size={15}/>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex gap-1">
+                        {u.role !== 'admin' && (
+                          <button onClick={() => promoteAdmin(u.id)} title="Promouvoir admin"
+                            className="p-2 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 text-purple-500 transition-colors">
+                            <FiShield size={15} />
+                          </button>
+                        )}
+                        <button onClick={() => handleBlock(u.id)} title={u.is_blocked ? 'Débloquer' : 'Bloquer'}
+                          className={`p-2 rounded-lg transition-colors ${u.is_blocked ? 'hover:bg-green-50 dark:hover:bg-green-900/20 text-green-500' : 'hover:bg-yellow-50 dark:hover:bg-yellow-900/20 text-yellow-500'}`}>
+                          {u.is_blocked ? <FiUnlock size={15} /> : <FiLock size={15} />}
                         </button>
+                        <button onClick={() => handleDelete(u.id, u.orders_count > 0)} title={u.orders_count > 0 ? 'Impossible de supprimer cet utilisateur car il possède des commandes.' : 'Supprimer'}
+                          disabled={u.orders_count > 0}
+                          className={`p-2 rounded-lg transition-colors ${u.orders_count > 0 ? 'opacity-50 cursor-not-allowed text-red-300 dark:text-red-700/70' : 'hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500'}`}>
+                          <FiTrash2 size={15} />
+                        </button>
+                      </div>
+                      {u.orders_count > 0 && (
+                        <p className="text-xs text-red-500">Impossible de supprimer cet utilisateur car il possède des commandes.</p>
                       )}
-                      <button onClick={() => handleBlock(u.id)} title={u.is_blocked ? 'Débloquer' : 'Bloquer'}
-                        className={`p-2 rounded-lg transition-colors ${u.is_blocked ? 'hover:bg-green-50 dark:hover:bg-green-900/20 text-green-500' : 'hover:bg-yellow-50 dark:hover:bg-yellow-900/20 text-yellow-500'}`}>
-                        {u.is_blocked ? <FiUnlock size={15}/> : <FiLock size={15}/>}
-                      </button>
-                      <button onClick={() => handleDelete(u.id)} title="Supprimer"
-                        className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 transition-colors">
-                        <FiTrash2 size={15}/>
-                      </button>
                     </div>
                   </td>
                 </tr>
@@ -123,8 +136,8 @@ export default function AdminUsers() {
           <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between text-sm">
             <span className="text-gray-500">Page {page}/{meta.last_page}</span>
             <div className="flex gap-2">
-              <button onClick={() => setPage(p => Math.max(1,p-1))} disabled={page===1} className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 disabled:opacity-40">Préc.</button>
-              <button onClick={() => setPage(p => Math.min(meta.last_page,p+1))} disabled={page===meta.last_page} className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 disabled:opacity-40">Suiv.</button>
+              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 disabled:opacity-40">Préc.</button>
+              <button onClick={() => setPage(p => Math.min(meta.last_page, p + 1))} disabled={page === meta.last_page} className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 disabled:opacity-40">Suiv.</button>
             </div>
           </div>
         )}

@@ -62,6 +62,7 @@
         "sizes": "Sizes",
         "colors": "Colors",
         "similar_products": "Similar products",
+        "review_prompt": "to leave a review",
         "back_link": "Back"
     },
     "cart": {
@@ -169,10 +170,6 @@
         "description": "Your fashion destination for trendy clothes and shoes in Morocco.",
         "navigation": "Navigation",
         "account": "My Account"
-    },
-    "product_detail": {
-        "review_prompt": "to leave a review",
-        "back_link": "Back"
     },
     "auth": {
         "login_title": "Welcome back!",

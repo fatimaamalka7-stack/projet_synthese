@@ -9,6 +9,9 @@ class Controller extends BaseController
     // Base controller for application HTTP controllers.
 }
 
+<<<<<<< HEAD
 
  
 ?>
+=======
+>>>>>>> origin/ayat

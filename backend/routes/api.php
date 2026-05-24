@@ -9,6 +9,7 @@ use App\Http\Controllers\API\OrderController;
 use App\Http\Controllers\API\ReviewController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\StatisticsController;
+use App\Http\Controllers\API\ReportsController;
 use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\API\AdminNotificationController;
 
@@ -60,10 +61,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/payments/card-verification-code', [PaymentController::class, 'sendCardVerificationCode']);
 
     // Admin routes
-    Route::middleware('admin')->group(function () {
+    Route::middleware(\App\Http\Middleware\AdminMiddleware::class)->group(function () {
 
         // Products CRUD
         Route::post('/products', [ProductController::class, 'store']);
+        Route::post('/products/{id}', [ProductController::class, 'update']);
         Route::put('/products/{id}', [ProductController::class, 'update']);
         Route::delete('/products/{id}', [ProductController::class, 'destroy']);
 
@@ -79,10 +81,19 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/admin/users/{id}', [UserController::class, 'destroy']);
         Route::put('/admin/users/{id}/block', [UserController::class, 'block']);
 
+        // User archives management
+        Route::get('/admin/users-archives', [UserController::class, 'listArchives']);
+        Route::get('/admin/users-archives/{id}', [UserController::class, 'showArchive']);
+        Route::post('/admin/users-archives/{id}/restore', [UserController::class, 'restoreArchive']);
+        Route::delete('/admin/users-archives/{id}', [UserController::class, 'deleteArchive']);
+
         // Orders management
         Route::get('/admin/orders', [OrderController::class, 'adminIndex']);
         Route::get('/admin/orders/unseen-count', [OrderController::class, 'unseenCount']);
+<<<<<<< HEAD
         Route::put('/admin/orders/seen-all', [OrderController::class, 'markAllAsSeen']);
+=======
+>>>>>>> origin/ayat
         Route::put('/admin/orders/{id}/seen', [OrderController::class, 'markAsSeen']);
         Route::put('/admin/orders/{id}/status', [OrderController::class, 'updateStatus']);
         Route::put('/admin/orders/{id}/return', [OrderController::class, 'returnOrder']);
@@ -90,6 +101,10 @@ Route::middleware('auth:sanctum')->group(function () {
         // Reviews management
         Route::get('/admin/reviews', [ReviewController::class, 'adminIndex']);
         Route::put('/admin/reviews/{id}/validate', [ReviewController::class, 'validate']);
+
+        // Reports
+        Route::get('/admin/reports', [ReportsController::class, 'index']);
+        Route::get('/admin/reports/pdf', [ReportsController::class, 'pdf']);
 
         // Statistics
         Route::get('/admin/statistics', [StatisticsController::class, 'index']);
