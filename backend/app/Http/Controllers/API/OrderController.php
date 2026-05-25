@@ -9,8 +9,10 @@ use App\Models\Cart;
 use App\Models\Product;
 use App\Models\AdminNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use App\Services\AdminNotificationService;
+use App\Http\Controllers\API\PaymentController;
 
 class OrderController extends Controller
 {
@@ -19,7 +21,21 @@ class OrderController extends Controller
         $request->validate([
             'payment_method' => 'required|in:livraison,carte,paypal',
             'address'        => 'required|string|max:500',
+            'payment_email'  => 'required_if:payment_method,carte|nullable|email|max:255',
+            'verification_code' => 'required_if:payment_method,carte|nullable|digits:6',
         ]);
+
+        $verificationKey = null;
+        if ($request->payment_method === 'carte') {
+            $verificationKey = PaymentController::cardVerificationCacheKey(
+                $request->user()->id,
+                $request->payment_email
+            );
+
+            if (Cache::get($verificationKey) !== $request->verification_code) {
+                return response()->json(['message' => 'Code de verification invalide ou expire'], 422);
+            }
+        }
 
         $cart = Cart::where('user_id', $request->user()->id)
             ->with('items.product')
@@ -65,6 +81,16 @@ class OrderController extends Controller
 
             $order->load('items.product');
 
+            // If payment was made by card, create a payment record (payment already succeeded client-side)
+            if ($request->payment_method === 'carte') {
+                \App\Models\Payment::create([
+                    'order_id' => $order->id,
+                    'amount' => $total,
+                    'method' => 'carte',
+                    'status' => 'complete',
+                ]);
+            }
+
             AdminNotificationService::create(
                 'order_created',
                 'Nouvelle commande',
@@ -72,6 +98,10 @@ class OrderController extends Controller
                 $order,
                 $request->user()
             );
+
+            if ($verificationKey) {
+                Cache::forget($verificationKey);
+            }
 
             return response()->json([
                 'message' => 'Commande passée avec succès',
@@ -126,7 +156,15 @@ class OrderController extends Controller
         $query = Order::with(['user', 'items.product']);
 
         if ($request->status) {
-            $query->where('status', $request->status);
+            if ($request->status === 'retournee') {
+                $query->whereNotNull('returned_at');
+            } else {
+                $query->where('status', $request->status);
+            }
+        }
+
+        if ($request->boolean('unseen')) {
+            $query->whereNull('admin_seen_at');
         }
 
         if ($request->boolean('unseen')) {
@@ -167,6 +205,24 @@ class OrderController extends Controller
         ]);
     }
 
+    public function markAllAsSeen()
+    {
+        $seenAt = now();
+
+        Order::whereNull('admin_seen_at')->update(['admin_seen_at' => $seenAt]);
+
+        AdminNotification::where('type', 'order_created')
+            ->whereNull('read_at')
+            ->update(['read_at' => $seenAt]);
+
+        return response()->json([
+            'message' => 'Commandes marquees comme vues',
+            'seen_at' => $seenAt,
+            'unseen_count' => 0,
+            'unread_notifications' => AdminNotification::unread()->count(),
+        ]);
+    }
+
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
@@ -174,8 +230,48 @@ class OrderController extends Controller
         ]);
 
         $order = Order::findOrFail($id);
-        $order->update(['status' => $request->status]);
+
+        $data = ['status' => $request->status];
+        if ($request->status === 'livree' && !$order->delivered_at) {
+            $data['delivered_at'] = now();
+        }
+
+        $order->update($data);
 
         return response()->json(['message' => 'Statut mis à jour', 'order' => $order]);
+    }
+
+    public function returnOrder(Request $request, $id)
+    {
+        $order = Order::with(['user', 'items.product'])->findOrFail($id);
+
+        if ($order->returned_at) {
+            return response()->json(['message' => 'Cette commande a déjà été retournée'], 422);
+        }
+
+        if ($order->status !== 'livree') {
+            return response()->json(['message' => 'Seules les commandes livrées peuvent être retournées'], 422);
+        }
+
+        $reference = $order->delivered_at ?? $order->created_at;
+        if ($reference->diffInHours(now()) > 24) {
+            return response()->json(['message' => 'La période de retour de 24 heures est expirée'], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            foreach ($order->items as $item) {
+                $item->product->increment('stock', $item->quantity);
+            }
+
+            $order->update(['returned_at' => now()]);
+
+            DB::commit();
+
+            return response()->json(['message' => 'Commande marquée comme retournée et le stock a été restauré', 'order' => $order->fresh(['user', 'items.product'])]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Erreur lors du traitement du retour', 'error' => $e->getMessage()], 500);
+        }
     }
 }

@@ -2,11 +2,14 @@ import { useState, useEffect, useRef } from 'react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
 import { FiPlus, FiEdit2, FiTrash2, FiX, FiSearch, FiImage } from 'react-icons/fi'
+import { useTranslation } from 'react-i18next'
 
 const EMPTY = { name: '', description: '', price: '', stock: '', category_id: '', matiere: '', tailles: '', couleurs: '' }
 
 export default function AdminProducts() {
   const [products, setProducts] = useState([])
+  const { t } = useTranslation()
+  const [products, setProducts]   = useState([])
   const [categories, setCategories] = useState([])
   const [meta, setMeta] = useState(null)
   const [page, setPage] = useState(1)
@@ -84,6 +87,7 @@ export default function AdminProducts() {
         </div>
         <button onClick={openAdd} className="btn-primary flex items-center gap-2">
           <FiPlus size={16} /> Ajouter
+          <FiPlus size={16}/> {t('button.add')}
         </button>
       </div>
 

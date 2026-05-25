@@ -2,11 +2,13 @@ import { createContext, useContext, useState, useEffect } from 'react'
 import api from '../services/api'
 import { useAuth } from './AuthContext'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 
 const CartContext = createContext(null)
 
 export function CartProvider({ children }) {
   const { user } = useAuth()
+  const { t } = useTranslation()
   const [cart, setCart] = useState(null)
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -32,14 +34,14 @@ export function CartProvider({ children }) {
   }, [user])
 
   const addToCart = async (productId, quantity = 1) => {
-    if (!user) { toast.error('Connectez-vous pour ajouter au panier'); return false }
+    if (!user) { toast.error(t('cart.login_required')); return false }
     try {
       await api.post('/cart/add', { product_id: productId, quantity })
       await fetchCart()
-      toast.success('Produit ajouté au panier !')
+      toast.success(t('cart.added_success'))
       return true
     } catch (e) {
-      toast.error(e.response?.data?.message || 'Erreur')
+      toast.error(e.response?.data?.message || t('button.loading'))
       return false
     }
   }
@@ -55,7 +57,7 @@ export function CartProvider({ children }) {
     try {
       await api.delete(`/cart/remove/${itemId}`)
       await fetchCart()
-      toast.success('Produit retiré du panier')
+      toast.success(t('cart.removed_success'))
     } catch { }
   }
 

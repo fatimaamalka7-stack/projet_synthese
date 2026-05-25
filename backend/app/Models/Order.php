@@ -7,6 +7,12 @@ class Order extends Model {
 
     protected $casts = [
         'admin_seen_at' => 'datetime',
+    protected $fillable = ['user_id','total','status','payment_method','address','admin_seen_at','delivered_at','returned_at'];
+
+    protected $casts = [
+        'admin_seen_at' => 'datetime',
+        'delivered_at' => 'datetime',
+        'returned_at' => 'datetime',
     ];
 
     public function user()    { return $this->belongsTo(User::class); }

@@ -8,8 +8,15 @@ const statusColors = {
   expediee: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
   livree: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
   annulee: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+  retournee: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
 }
-const statusKeys = { en_attente: 'orders.status_pending', expediee: 'orders.status_processing', livree: 'orders.status_delivered', annulee: 'orders.status_cancelled' }
+const statusKeys = {
+  en_attente: 'orders.status_pending',
+  expediee: 'orders.status_processing',
+  livree: 'orders.status_delivered',
+  annulee: 'orders.status_cancelled',
+  retournee: 'orders.status_returned',
+}
 
 export default function OrdersPage() {
   const { t, i18n } = useTranslation()
@@ -39,7 +46,7 @@ export default function OrdersPage() {
                   <p className="font-bold">{t('orders.order_number')} #{order.id}</p>
                   <p className="text-xs text-gray-500">{new Intl.DateTimeFormat(i18n.language, { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(order.created_at))}</p>
                 </div>
-                <span className={`badge ${statusColors[order.status]}`}>{t(statusKeys[order.status] || `orders.status_${order.status}`)}</span>
+                <span className={`badge ${statusColors[order.returned_at ? 'retournee' : order.status]}`}>{t(statusKeys[order.returned_at ? 'retournee' : order.status] || `orders.status_${order.status}`)}</span>
               </div>
               <div className="space-y-1.5 mb-3">
                 {order.items?.map(item => (

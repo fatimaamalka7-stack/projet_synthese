@@ -50,6 +50,7 @@ export default function AdminLayout() {
         const [unreadCount, setUnreadCount] = useState(0)
         const [notifications, setNotifications] = useState([])
         const [showNotifications, setShowNotifications] = useState(false)
+        setNotifications([])
         setUnreadNotifications(0)
       })
     }
@@ -62,6 +63,7 @@ export default function AdminLayout() {
     loadUnseenOrders()
     loadNotifications()
     const interval = window.setInterval(refreshAdminBadges, 30000)
+    const interval = window.setInterval(refreshAdminBadges, 5000)
     window.addEventListener('orders:seen', refreshAdminBadges)
     window.addEventListener('notifications:changed', refreshAdminBadges)
 
@@ -124,11 +126,13 @@ export default function AdminLayout() {
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto p-3 space-y-1">
           {navItems.map(({ to, icon: Icon, labelKey, label, end, badge }) => (
+          {navItems.map(({ to, icon: Icon, labelKey, end, badge }) => (
             <NavLink key={to} to={to} end={end}
               className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
               onClick={() => setSidebarOpen(false)}>
               <Icon size={18} />
               <span className="flex-1">{label ?? t(labelKey)}</span>
+              <span className="flex-1">{t(labelKey)}</span>
               {badge === 'orders' && unseenOrders > 0 && (
                 <span className="min-w-[20px] h-5 text-[11px] leading-5 rounded-full bg-red-500 text-white flex items-center justify-center px-1.5">
                   {unseenOrders}

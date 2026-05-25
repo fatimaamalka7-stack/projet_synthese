@@ -57,6 +57,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Payments
     Route::post('/payments', [PaymentController::class, 'store']);
+    Route::post('/payments/create-intent', [PaymentController::class, 'createIntent']);
+    Route::post('/payments/card-verification-code', [PaymentController::class, 'sendCardVerificationCode']);
 
     // Admin routes
     Route::middleware(\App\Http\Middleware\AdminMiddleware::class)->group(function () {
@@ -88,8 +90,10 @@ Route::middleware('auth:sanctum')->group(function () {
         // Orders management
         Route::get('/admin/orders', [OrderController::class, 'adminIndex']);
         Route::get('/admin/orders/unseen-count', [OrderController::class, 'unseenCount']);
+        Route::put('/admin/orders/seen-all', [OrderController::class, 'markAllAsSeen']);
         Route::put('/admin/orders/{id}/seen', [OrderController::class, 'markAsSeen']);
         Route::put('/admin/orders/{id}/status', [OrderController::class, 'updateStatus']);
+        Route::put('/admin/orders/{id}/return', [OrderController::class, 'returnOrder']);
 
         // Reviews management
         Route::get('/admin/reviews', [ReviewController::class, 'adminIndex']);
