@@ -6,7 +6,7 @@ import { useTheme } from '../../context/ThemeContext'
 import {
   FiGrid, FiPackage, FiShoppingBag, FiUsers, FiArchive,
   FiMessageSquare, FiSettings, FiBarChart2, FiLogOut,
-  FiMenu, FiX, FiSun, FiMoon, FiBell
+  FiMenu, FiX, FiSun, FiMoon, FiBell, FiRefreshCw, FiStar
 } from 'react-icons/fi'
 import api from '../../services/api'
 
@@ -14,8 +14,10 @@ const navItems = [
   { to: '/admin', icon: FiGrid, labelKey: 'admin.dashboard', end: true },
   { to: '/admin/produits', icon: FiPackage, labelKey: 'admin.products' },
   { to: '/admin/commandes', icon: FiShoppingBag, labelKey: 'admin.orders', badge: 'orders' },
+  { to: '/admin/retours', icon: FiRefreshCw, label: 'Retours' },
   { to: '/admin/utilisateurs', icon: FiUsers, labelKey: 'admin.users' },
   { to: '/admin/utilisateurs-archives', icon: FiArchive, label: 'Archives' },
+  { to: '/admin/fidelite', icon: FiStar, label: 'Fidélité' },
   { to: '/admin/avis', icon: FiMessageSquare, labelKey: 'admin.reviews' },
   { to: '/admin/rapports', icon: FiBarChart2, label: 'Rapports' },
   { to: '/admin/parametres', icon: FiSettings, labelKey: 'admin.settings' },
@@ -47,9 +49,7 @@ export default function AdminLayout() {
         setNotifications(list.data.data || [])
         setUnreadNotifications(count.data.count || 0)
       }).catch(() => {
-        const [unreadCount, setUnreadCount] = useState(0)
-        const [notifications, setNotifications] = useState([])
-        const [showNotifications, setShowNotifications] = useState(false)
+
         setNotifications([])
         setUnreadNotifications(0)
       })
@@ -63,7 +63,6 @@ export default function AdminLayout() {
     loadUnseenOrders()
     loadNotifications()
     const interval = window.setInterval(refreshAdminBadges, 30000)
-    const interval = window.setInterval(refreshAdminBadges, 5000)
     window.addEventListener('orders:seen', refreshAdminBadges)
     window.addEventListener('notifications:changed', refreshAdminBadges)
 
@@ -126,13 +125,11 @@ export default function AdminLayout() {
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto p-3 space-y-1">
           {navItems.map(({ to, icon: Icon, labelKey, label, end, badge }) => (
-          {navItems.map(({ to, icon: Icon, labelKey, end, badge }) => (
             <NavLink key={to} to={to} end={end}
               className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
               onClick={() => setSidebarOpen(false)}>
               <Icon size={18} />
               <span className="flex-1">{label ?? t(labelKey)}</span>
-              <span className="flex-1">{t(labelKey)}</span>
               {badge === 'orders' && unseenOrders > 0 && (
                 <span className="min-w-[20px] h-5 text-[11px] leading-5 rounded-full bg-red-500 text-white flex items-center justify-center px-1.5">
                   {unseenOrders}

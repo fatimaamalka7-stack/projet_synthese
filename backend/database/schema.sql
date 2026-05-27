@@ -73,7 +73,7 @@ CREATE TABLE orders (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT UNSIGNED NOT NULL,
     total DECIMAL(10,2) NOT NULL,
-    status ENUM('en_attente','expediee','livree','annulee') DEFAULT 'en_attente',
+    status ENUM('en_attente','confirmee','expediee','livree','annulee','retournee') DEFAULT 'en_attente',
     payment_method ENUM('livraison','carte','paypal') NOT NULL,
     address TEXT NOT NULL,
     created_at TIMESTAMP NULL,

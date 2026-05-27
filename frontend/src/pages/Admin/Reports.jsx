@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
 import {
     LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
     Tooltip, ResponsiveContainer, Legend, AreaChart, Area
 } from 'recharts'
-import { FiDownload, FiCalendar, FiTrendingUp, FiShoppingBag, FiUsers, FiPackage, FiBarChart2 } from 'react-icons/fi'
-
+import { FiDownload, FiCalendar, FiTrendingUp, FiShoppingBag, FiUsers, FiPackage, FiBarChart2, FiRefreshCw, FiBell } from 'react-icons/fi'
 function StatCard({ title, value, icon: Icon, sub, accent }) {
     return (
         <div className="bg-white dark:bg-gray-800 rounded-3xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm">
@@ -21,6 +21,7 @@ function StatCard({ title, value, icon: Icon, sub, accent }) {
 }
 
 export default function AdminReports() {
+    const { t } = useTranslation()
     const [reportType, setReportType] = useState('monthly')
     const [year, setYear] = useState(new Date().getFullYear())
     const [from, setFrom] = useState('')
@@ -81,6 +82,13 @@ export default function AdminReports() {
 
     const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i)
     const chartData = data?.monthly?.map(item => ({ name: item.label, revenue: item.revenue, orders: item.orders })) || []
+    const returnRateData = data?.return_stats?.return_rate_by_product?.map(item => ({ name: item.name, return_rate: item.return_rate })) || []
+    const mostReturned = data?.return_stats?.most_returned_product
+    const mostCanceled = data?.return_stats?.most_canceled_product
+    const lowestReturnProducts = data?.return_stats?.lowest_return_rate_products || []
+    const topRestockedProducts = data?.return_stats?.top_restocked_products || []
+    const totalReturns = data?.summary?.total_return_requests ?? 0
+    const totalRestocked = data?.summary?.restocked_quantity ?? 0
 
     return (
         <div className="space-y-6 animate-fade-in">
@@ -137,27 +145,38 @@ export default function AdminReports() {
                     </div>
 
                     <div className="grid gap-4">
-                        <StatCard title="Chiffre d'affaires" value={`${(data?.summary?.total_revenue ?? 0).toFixed(2)} DH`} icon={FiTrendingUp} accent="bg-amber-600" sub="Total sur la période sélectionnée" />
-                        <StatCard title="Commandes" value={data?.summary?.total_orders ?? 0} icon={FiShoppingBag} accent="bg-sky-600" sub="Nombre de commandes validées" />
-                        <StatCard title="Produits vendus" value={data?.summary?.total_products_sold ?? 0} icon={FiPackage} accent="bg-rose-600" sub="Quantité totale vendue" />
-                        <StatCard title="Utilisateurs" value={data?.summary?.total_users ?? 0} icon={FiUsers} accent="bg-emerald-600" sub="Clients inscrits" />
+                        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
+                            <StatCard title="Total des retours" value={totalReturns} icon={FiRefreshCw} accent="bg-purple-600" sub="Demandes enregistrées" />
+                            <StatCard title="Article le plus retourné" value={mostReturned?.name ?? 'Aucun'} icon={FiPackage} accent="bg-amber-600" sub={`${mostReturned?.returned_quantity ?? 0} retours`} />
+                            <StatCard title="Produit le plus annulé" value={mostCanceled?.name ?? 'Aucun'} icon={FiBell} accent="bg-yellow-500" sub={`${mostCanceled?.canceled_quantity ?? 0} annulations`} />
+                            <StatCard title="Articles remis en stock" value={totalRestocked} icon={FiTrendingUp} accent="bg-emerald-600" sub="Quantité restituée" />
+                        </div>
+                        <div className="grid gap-4 lg:grid-cols-3">
+                            <StatCard title="Revenus" value={`${(data?.summary?.total_revenue ?? 0).toFixed(2)} DH`} icon={FiTrendingUp} accent="bg-amber-600" sub="Total sur la période" />
+                            <StatCard title="Commandes" value={data?.summary?.total_orders ?? 0} icon={FiShoppingBag} accent="bg-sky-600" sub="Commandes validées" />
+                            <StatCard title="Produits vendus" value={data?.summary?.total_products_sold ?? 0} icon={FiPackage} accent="bg-rose-600" sub="Articles vendus" />
+                        </div>
                     </div>
                 </div>
 
                 <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm">
-                    <p className="text-xs uppercase tracking-[0.3em] text-gray-400">Détails</p>
+                    <p className="text-xs uppercase tracking-[0.3em] text-gray-400">Retours</p>
                     <div className="mt-4 space-y-3 text-sm text-gray-600 dark:text-gray-300">
                         <div className="flex items-center justify-between gap-3 border-b border-gray-100 dark:border-gray-700 pb-3">
-                            <span>Période sélectionnée</span>
-                            <strong>{data?.period_label || 'Chargement...'}</strong>
+                            <span>Total des demandes</span>
+                            <strong>{totalReturns}</strong>
                         </div>
                         <div className="flex items-center justify-between gap-3 border-b border-gray-100 dark:border-gray-700 pb-3">
-                            <span>Revenus récents</span>
-                            <strong>{data?.summary?.recent_revenue ? `${Number(data.summary.recent_revenue).toFixed(2)} DH` : '—'}</strong>
+                            <span>Articles remis en stock</span>
+                            <strong>{totalRestocked}</strong>
+                        </div>
+                        <div className="flex items-center justify-between gap-3 border-b border-gray-100 dark:border-gray-700 pb-3">
+                            <span>Article le plus retourné</span>
+                            <strong>{mostReturned?.name ?? 'Aucun'}</strong>
                         </div>
                         <div className="flex items-center justify-between gap-3">
-                            <span>Évolution estimée</span>
-                            <strong>{data?.summary?.revenue_evolution !== null && data?.summary?.revenue_evolution !== undefined ? `${data.summary.revenue_evolution}%` : 'N/A'}</strong>
+                            <span>Produit le plus annulé</span>
+                            <strong>{mostCanceled?.name ?? 'Aucun'}</strong>
                         </div>
                     </div>
                 </div>
@@ -249,36 +268,86 @@ export default function AdminReports() {
 
             <div className="grid gap-4 lg:grid-cols-3">
                 <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 p-5">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="w-11 h-11 rounded-2xl bg-primary-600 text-white flex items-center justify-center"><FiCalendar size={20} /></div>
+                    <div className="flex items-center justify-between gap-3 mb-5">
                         <div>
-                            <p className="text-sm text-gray-500">Période</p>
-                            <p className="font-semibold text-gray-900 dark:text-white">{data?.period_label || '—'}</p>
+                            <p className="text-sm uppercase tracking-[0.3em] text-gray-400">Taux de retour</p>
+                            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Retour par article</h2>
                         </div>
+                        <span className="text-xs text-gray-500">{returnRateData.length} articles</span>
                     </div>
-                    <p className="text-sm text-gray-500">Ce rapport fournit une vue synthétique et professionnelle des revenus, des volumes et des tendances clés.</p>
+                    {loading ? (
+                        <div className="h-[320px] rounded-3xl bg-gray-100 dark:bg-gray-900" />
+                    ) : returnRateData.length > 0 ? (
+                        <ResponsiveContainer width="100%" height={320}>
+                            <BarChart data={returnRateData} margin={{ top: 10, right: 0, left: -12, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" vertical={false} />
+                                <XAxis dataKey="name" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                                <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                                <Tooltip formatter={(value) => [`${value}%`, 'Taux']} />
+                                <Bar dataKey="return_rate" fill="#7C3AED" radius={[8, 8, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className="h-[320px] flex items-center justify-center text-gray-400">Aucune donnée de retour disponible</div>
+                    )}
                 </div>
                 <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 p-5">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="w-11 h-11 rounded-2xl bg-amber-500 text-white flex items-center justify-center"><FiTrendingUp size={20} /></div>
-                        <div>
-                            <p className="text-sm text-gray-500">Revenus récents</p>
-                            <p className="font-semibold text-gray-900 dark:text-white">{data?.summary?.recent_revenue ? `${Number(data.summary.recent_revenue).toFixed(0)} DH` : '—'}</p>
-                        </div>
+                    <div className="mb-4">
+                        <p className="text-sm uppercase tracking-[0.3em] text-gray-400">Qualité produit</p>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Faible taux de retour</h3>
                     </div>
-                    <p className="text-sm text-gray-500">Analyse automatique des 30 derniers jours.</p>
+                    <div className="space-y-3">
+                        {lowestReturnProducts.length > 0 ? lowestReturnProducts.map((item) => (
+                            <div key={item.id} className="rounded-3xl border border-gray-100 dark:border-gray-700 p-4">
+                                <div className="flex items-center justify-between gap-3">
+                                    <div>
+                                        <p className="font-semibold text-gray-900 dark:text-white">{item.name}</p>
+                                        <p className="text-xs text-gray-500 mt-1">{item.sold_quantity} vendus</p>
+                                    </div>
+                                    <span className="text-sm font-semibold text-primary-600">{item.return_rate}%</span>
+                                </div>
+                            </div>
+                        )) : (
+                            <p className="text-sm text-gray-500">Pas de produit avec des retours enregistrés.</p>
+                        )}
+                    </div>
                 </div>
-                <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 p-5">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="w-11 h-11 rounded-2xl bg-sky-600 text-white flex items-center justify-center"><FiBarChart2 size={20} /></div>
-                        <div>
-                            <p className="text-sm text-gray-500">Commandes totales</p>
-                            <p className="font-semibold text-gray-900 dark:text-white">{data?.summary?.total_orders || 0}</p>
+                <div className="space-y-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 p-5">
+                        <div className="mb-4">
+                            <p className="text-sm uppercase tracking-[0.3em] text-gray-400">Annulations</p>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Produit le plus annulé</h3>
+                        </div>
+                        <div className="rounded-3xl border border-gray-100 dark:border-gray-700 p-4">
+                            <p className="font-semibold text-gray-900 dark:text-white">{mostCanceled?.name ?? 'Aucun'}</p>
+                            <p className="text-sm text-gray-500 mt-2">{mostCanceled?.canceled_quantity ?? 0} articles annulés</p>
                         </div>
                     </div>
-                    <p className="text-sm text-gray-500">Base de données des ventes pour la période sélectionnée.</p>
+                    <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 p-5">
+                        <div className="mb-4">
+                            <p className="text-sm uppercase tracking-[0.3em] text-gray-400">Restockage</p>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Produits remis en stock</h3>
+                        </div>
+                        <div className="space-y-3">
+                            {topRestockedProducts.length > 0 ? topRestockedProducts.map((product) => (
+                                <div key={product.id} className="rounded-3xl border border-gray-100 dark:border-gray-700 p-4">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div>
+                                            <p className="font-semibold text-gray-900 dark:text-white">{product.name}</p>
+                                            <p className="text-xs text-gray-500 mt-1">articles remis en stock</p>
+                                        </div>
+                                        <span className="text-sm font-semibold text-primary-600">{product.quantity}</span>
+                                    </div>
+                                </div>
+                            )) : (
+                                <p className="text-sm text-gray-500">Aucun produit remis en stock sur cette période.</p>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+
+            
     )
 }

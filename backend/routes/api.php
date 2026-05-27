@@ -6,6 +6,8 @@ use App\Http\Controllers\API\ProductController;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\CartController;
 use App\Http\Controllers\API\OrderController;
+use App\Http\Controllers\API\LoyaltyController;
+use App\Http\Controllers\API\ReturnRequestController;
 use App\Http\Controllers\API\ReviewController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\StatisticsController;
@@ -50,6 +52,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/orders/{id}', [OrderController::class, 'show']);
     Route::put('/orders/{id}/cancel', [OrderController::class, 'cancel']);
+    Route::post('/orders/{id}/returns', [ReturnRequestController::class, 'store']);
+    Route::get('/orders/returns', [ReturnRequestController::class, 'index']);
+
+    // Loyalty
+    Route::get('/loyalty', [LoyaltyController::class, 'myCard']);
 
     // Reviews
     Route::post('/reviews', [ReviewController::class, 'store']);
@@ -93,7 +100,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/admin/orders/seen-all', [OrderController::class, 'markAllAsSeen']);
         Route::put('/admin/orders/{id}/seen', [OrderController::class, 'markAsSeen']);
         Route::put('/admin/orders/{id}/status', [OrderController::class, 'updateStatus']);
+        Route::put('/admin/orders/{id}/restock', [OrderController::class, 'restock']);
         Route::put('/admin/orders/{id}/return', [OrderController::class, 'returnOrder']);
+
+        Route::get('/admin/returns', [ReturnRequestController::class, 'adminIndex']);
+        Route::put('/admin/returns/{id}/status', [ReturnRequestController::class, 'updateStatus']);
 
         // Reviews management
         Route::get('/admin/reviews', [ReviewController::class, 'adminIndex']);
@@ -107,6 +118,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/admin/statistics', [StatisticsController::class, 'index']);
         Route::get('/admin/statistics/revenue', [StatisticsController::class, 'revenue']);
         Route::get('/admin/statistics/products', [StatisticsController::class, 'popularProducts']);
+
+        // Admin loyalty
+        Route::get('/admin/loyalty/cards', [LoyaltyController::class, 'adminCards']);
+        Route::put('/admin/loyalty/cards/{id}', [LoyaltyController::class, 'adminUpdateCard']);
+        Route::get('/admin/loyalty/settings', [LoyaltyController::class, 'adminSettings']);
+        Route::put('/admin/loyalty/settings', [LoyaltyController::class, 'adminUpdateSettings']);
 
         // Admin notifications
         Route::get('/admin/notifications', [AdminNotificationController::class, 'index']);

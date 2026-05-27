@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\User;
 use App\Models\Product;
 use App\Models\OrderItem;
+use App\Models\ReturnRequest;
 use App\Models\AdminNotification;
 use Illuminate\Support\Facades\DB;
 
@@ -39,7 +40,19 @@ class StatisticsController extends Controller
             ->orderBy('month')
             ->get();
 
+        $returnStats = $this->buildReturnStatistics();
+
+        $returnRequestsByStatus = ReturnRequest::select('status', DB::raw('count(*) as count'))
+            ->groupBy('status')
+            ->get()
+            ->keyBy('status');
+
         return response()->json([
+            'total_return_requests' => $returnRequestsByStatus->sum('count'),
+            'pending_return_requests' => $returnRequestsByStatus->get('pending')->count ?? 0,
+            'approved_return_requests' => $returnRequestsByStatus->get('approved')->count ?? 0,
+            'rejected_return_requests' => $returnRequestsByStatus->get('rejected')->count ?? 0,
+            'refunded_return_requests' => $returnRequestsByStatus->get('refunded')->count ?? 0,
             'total_users'      => $totalUsers,
             'total_orders'     => $totalOrders,
             'total_revenue'    => $totalRevenue,
@@ -49,6 +62,7 @@ class StatisticsController extends Controller
             'unread_notifications' => $unreadNotifications,
             'orders_by_status' => $ordersByStatus,
             'revenue_by_month' => $revenueByMonth,
+            'return_stats' => $returnStats,
         ]);
     }
 
@@ -78,5 +92,45 @@ class StatisticsController extends Controller
             ->get();
 
         return response()->json($products);
+    }
+
+    private function buildReturnStatistics(): array
+    {
+        $products = OrderItem::select(
+                'products.id as product_id',
+                'products.name as product_name',
+                DB::raw('SUM(CASE WHEN orders.status = "retournee" THEN order_items.quantity ELSE 0 END) as returned_quantity'),
+                DB::raw('SUM(CASE WHEN orders.status != "annulee" THEN order_items.quantity ELSE 0 END) as sold_quantity')
+            )
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->join('products', 'order_items.product_id', '=', 'products.id')
+            ->groupBy('products.id', 'products.name')
+            ->get();
+
+        $byProduct = $products->map(function ($item) {
+            $sold = (int) $item->sold_quantity;
+            $returned = (int) $item->returned_quantity;
+
+            return [
+                'id' => $item->product_id,
+                'name' => $item->product_name,
+                'sold_quantity' => $sold,
+                'returned_quantity' => $returned,
+                'return_rate' => $sold > 0 ? round(($returned / $sold) * 100, 2) : 0,
+            ];
+        });
+
+        $mostReturned = $byProduct->sortByDesc('returned_quantity')->first();
+        $lowestReturnRates = $byProduct
+            ->filter(fn($item) => $item['sold_quantity'] > 0)
+            ->sortBy('return_rate')
+            ->take(5)
+            ->values();
+
+        return [
+            'return_count_by_product' => $byProduct->sortByDesc('returned_quantity')->values(),
+            'most_returned_product' => $mostReturned,
+            'lowest_return_rate_products' => $lowestReturnRates,
+        ];
     }
 }

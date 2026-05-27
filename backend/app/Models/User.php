@@ -18,4 +18,6 @@ class User extends Authenticatable
     public function orders()   { return $this->hasMany(Order::class); }
     public function reviews()  { return $this->hasMany(Review::class); }
     public function cart()     { return $this->hasOne(Cart::class); }
+    public function returnRequests() { return $this->hasMany(ReturnRequest::class); }
+    public function loyaltyCard() { return $this->hasOne(LoyaltyCard::class); }
 }

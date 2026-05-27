@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
+import { useLoyalty } from '../context/LoyaltyContext'
+import LoyaltyCard from '../components/Loyalty/LoyaltyCard'
+import LoyaltyHistory from '../components/Loyalty/LoyaltyHistory'
 import api from '../services/api'
 import toast from 'react-hot-toast'
 import { FiUser, FiMail, FiPhone, FiMapPin, FiLock, FiSave } from 'react-icons/fi'
@@ -8,6 +11,7 @@ import { FiUser, FiMail, FiPhone, FiMapPin, FiLock, FiSave } from 'react-icons/f
 export default function ProfilePage() {
   const { t } = useTranslation()
   const { user, login } = useAuth()
+  const { card, settings } = useLoyalty()
   const [form, setForm] = useState({
     name: user?.name || '',
     phone: user?.phone || '',
@@ -56,6 +60,13 @@ export default function ProfilePage() {
           </span>
         </div>
       </div>
+
+      {card && settings && (
+        <div className="grid md:grid-cols-2 gap-5 mb-8">
+          <LoyaltyCard card={card} settings={settings} />
+          <LoyaltyHistory transactions={card.transactions} />
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-5 bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
         <h3 className="font-semibold text-lg border-b border-gray-100 dark:border-gray-700 pb-3">{t('profile.personal_info')}</h3>

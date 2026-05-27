@@ -8,6 +8,9 @@ use App\Models\OrderItem;
 use App\Models\Cart;
 use App\Models\Product;
 use App\Models\AdminNotification;
+use App\Models\LoyaltyCard;
+use App\Models\LoyaltyTransaction;
+use App\Services\LoyaltyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -23,6 +26,7 @@ class OrderController extends Controller
             'address'        => 'required|string|max:500',
             'payment_email'  => 'required_if:payment_method,carte|nullable|email|max:255',
             'verification_code' => 'required_if:payment_method,carte|nullable|digits:6',
+            'points_to_redeem' => 'nullable|integer|min:0',
         ]);
 
         $verificationKey = null;
@@ -47,14 +51,51 @@ class OrderController extends Controller
 
         DB::beginTransaction();
         try {
-            $total = $cart->items->sum(fn($i) => $i->quantity * $i->product->price);
+            $settings = LoyaltyService::getSettings();
+            $card = LoyaltyCard::firstOrCreate([
+                'user_id' => $request->user()->id,
+            ], [
+                'points' => 0,
+                'level' => LoyaltyService::calculateLevel(0, $settings),
+                'lifetime_points' => 0,
+            ]);
+
+            $subtotal = $cart->items->sum(fn($i) => $i->quantity * $i->product->price);
+            $pointsToRedeem = (int) $request->input('points_to_redeem', 0);
+            $redeemedPoints = 0;
+            $redemptionAmount = 0;
+
+            if ($pointsToRedeem > 0 && $card->points > 0) {
+                $redeemedPoints = LoyaltyService::maxRedeemablePoints($pointsToRedeem, $subtotal, $settings);
+                $redemptionAmount = LoyaltyService::calculateRedemptionAmount($redeemedPoints, $settings);
+
+                if ($redeemedPoints > 0) {
+                    $card->decrement('points', $redeemedPoints);
+                }
+            }
+
+            $total = max(0, $subtotal - $redemptionAmount);
+            $earnedPoints = LoyaltyService::calculatePointsEarned($subtotal, $card->level, $settings);
+
+            if ($earnedPoints > 0) {
+                $card->increment('points', $earnedPoints);
+                $card->increment('lifetime_points', $earnedPoints);
+            }
+
+            $card->level = LoyaltyService::calculateLevel($card->points, $settings);
+            $card->save();
 
             $order = Order::create([
-                'user_id'        => $request->user()->id,
-                'total'          => $total,
-                'status'         => 'en_attente',
+                'user_id' => $request->user()->id,
+                'subtotal' => $subtotal,
+                'total' => $total,
+                'points_redeemed' => $redeemedPoints,
+                'redemption_amount' => $redemptionAmount,
+                'loyalty_points_earned' => $earnedPoints,
+                'loyalty_level_at_order' => $card->level,
+                'status' => 'en_attente',
                 'payment_method' => $request->payment_method,
-                'address'        => $request->address,
+                'address' => $request->address,
             ]);
 
             foreach ($cart->items as $item) {
@@ -66,13 +107,33 @@ class OrderController extends Controller
                 }
 
                 OrderItem::create([
-                    'order_id'   => $order->id,
+                    'order_id' => $order->id,
                     'product_id' => $item->product_id,
-                    'quantity'   => $item->quantity,
-                    'price'      => $item->product->price,
+                    'quantity' => $item->quantity,
+                    'price' => $item->product->price,
                 ]);
 
                 $item->product->decrement('stock', $item->quantity);
+            }
+
+            if ($redeemedPoints > 0) {
+                LoyaltyTransaction::create([
+                    'loyalty_card_id' => $card->id,
+                    'type' => 'redeemed',
+                    'points' => -$redeemedPoints,
+                    'description' => "Utilisation de {$redeemedPoints} points pour une réduction de {$redemptionAmount} DH",
+                    'order_id' => $order->id,
+                ]);
+            }
+
+            if ($earnedPoints > 0) {
+                LoyaltyTransaction::create([
+                    'loyalty_card_id' => $card->id,
+                    'type' => 'earned',
+                    'points' => $earnedPoints,
+                    'description' => "Points gagnés pour la commande",
+                    'order_id' => $order->id,
+                ]);
             }
 
             $cart->items()->delete();
@@ -81,7 +142,6 @@ class OrderController extends Controller
 
             $order->load('items.product');
 
-            // If payment was made by card, create a payment record (payment already succeeded client-side)
             if ($request->payment_method === 'carte') {
                 \App\Models\Payment::create([
                     'order_id' => $order->id,
@@ -105,7 +165,7 @@ class OrderController extends Controller
 
             return response()->json([
                 'message' => 'Commande passée avec succès',
-                'order'   => $order,
+                'order' => $order,
             ], 201);
 
         } catch (\Exception $e) {
@@ -117,7 +177,7 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $orders = Order::where('user_id', $request->user()->id)
-            ->with('items.product')
+            ->with(['items.product', 'returnRequests'])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
@@ -127,7 +187,7 @@ class OrderController extends Controller
     public function show(Request $request, $id)
     {
         $order = Order::where('user_id', $request->user()->id)
-            ->with('items.product')
+            ->with(['items.product', 'returnRequests'])
             ->findOrFail($id);
 
         return response()->json($order);
@@ -135,25 +195,74 @@ class OrderController extends Controller
 
     public function cancel(Request $request, $id)
     {
-        $order = Order::where('user_id', $request->user()->id)->findOrFail($id);
+        $order = Order::where('user_id', $request->user()->id)->with('items.product')->findOrFail($id);
 
-        if (!in_array($order->status, ['en_attente'])) {
-            return response()->json(['message' => 'Impossible d\'annuler cette commande'], 422);
+        if (!$order->canBeCanceledOrReturned()) {
+            return response()->json(['message' => 'La commande ne peut plus être annulée ou retournée'], 422);
         }
 
-        foreach ($order->items as $item) {
-            $item->product->increment('stock', $item->quantity);
+        DB::beginTransaction();
+        try {
+            $settings = LoyaltyService::getSettings();
+            $card = LoyaltyCard::firstOrCreate([
+                'user_id' => $request->user()->id,
+            ], [
+                'points' => 0,
+                'level' => LoyaltyService::calculateLevel(0, $settings),
+                'lifetime_points' => 0,
+            ]);
+
+            if ($order->points_redeemed > 0) {
+                $card->increment('points', $order->points_redeemed);
+                LoyaltyTransaction::create([
+                    'loyalty_card_id' => $card->id,
+                    'type' => 'adjustment',
+                    'points' => $order->points_redeemed,
+                    'description' => 'Restauration des points suite à l\'annulation de la commande',
+                    'order_id' => $order->id,
+                ]);
+            }
+
+            if ($order->loyalty_points_earned > 0) {
+                $pointsToRemove = min($card->points, $order->loyalty_points_earned);
+                if ($pointsToRemove > 0) {
+                    $card->decrement('points', $pointsToRemove);
+                    LoyaltyTransaction::create([
+                        'loyalty_card_id' => $card->id,
+                        'type' => 'adjustment',
+                        'points' => -$pointsToRemove,
+                        'description' => 'Retrait des points gagnés après annulation de commande',
+                        'order_id' => $order->id,
+                    ]);
+                }
+            }
+
+            $card->level = LoyaltyService::calculateLevel($card->points, $settings);
+            $card->save();
+
+            foreach ($order->items as $item) {
+                $item->product->increment('stock', $item->quantity);
+            }
+
+            $order->update([
+                'status' => $order->status === 'livree' ? 'retournee' : 'annulee',
+                'returned_at' => $order->status === 'livree' ? now() : $order->returned_at,
+                'stock_restored_at' => now(),
+            ]);
+
+            DB::commit();
+
+            return response()->json(['message' => 'Commande annulée et stock restauré']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Erreur lors de l\'annulation de la commande', 'error' => $e->getMessage()], 500);
         }
-
-        $order->update(['status' => 'annulee']);
-
-        return response()->json(['message' => 'Commande annulée']);
     }
 
     // Admin
     public function adminIndex(Request $request)
     {
-        $query = Order::with(['user', 'items.product']);
+        $query = Order::with(['user', 'items.product', 'returnRequests', 'payment']);
 
         if ($request->status) {
             if ($request->status === 'retournee') {
@@ -161,10 +270,6 @@ class OrderController extends Controller
             } else {
                 $query->where('status', $request->status);
             }
-        }
-
-        if ($request->boolean('unseen')) {
-            $query->whereNull('admin_seen_at');
         }
 
         if ($request->boolean('unseen')) {
@@ -226,35 +331,65 @@ class OrderController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:en_attente,expediee,livree,annulee',
+            'status' => 'required|in:en_attente,confirmee,expediee,livree,annulee,retournee',
         ]);
 
-        $order = Order::findOrFail($id);
+        $order = Order::with('items.product')->findOrFail($id);
 
         $data = ['status' => $request->status];
         if ($request->status === 'livree' && !$order->delivered_at) {
             $data['delivered_at'] = now();
         }
 
+        if (in_array($request->status, ['annulee', 'retournee']) && !$order->hasRestoredStock()) {
+            foreach ($order->items as $item) {
+                $item->product->increment('stock', $item->quantity);
+            }
+            $data['stock_restored_at'] = now();
+        }
+
+        if ($request->status === 'retournee' && !$order->returned_at) {
+            $data['returned_at'] = now();
+        }
+
         $order->update($data);
 
-        return response()->json(['message' => 'Statut mis à jour', 'order' => $order]);
+        return response()->json(['message' => 'Statut mis à jour', 'order' => $order->fresh(['user', 'items.product', 'returnRequests', 'payment'])]);
+    }
+
+    public function restock(Request $request, $id)
+    {
+        $order = Order::with('items.product')->findOrFail($id);
+
+        if ($order->hasRestoredStock()) {
+            return response()->json(['message' => 'Le stock a déjà été restauré pour cette commande'], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            foreach ($order->items as $item) {
+                $item->product->increment('stock', $item->quantity);
+            }
+
+            $order->update(['stock_restored_at' => now()]);
+            DB::commit();
+
+            return response()->json(['message' => 'Stock restauré pour la commande', 'order' => $order]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Erreur lors de la restauration du stock', 'error' => $e->getMessage()], 500);
+        }
     }
 
     public function returnOrder(Request $request, $id)
     {
         $order = Order::with(['user', 'items.product'])->findOrFail($id);
 
-        if ($order->returned_at) {
+        if ($order->returned_at || $order->status === 'retournee') {
             return response()->json(['message' => 'Cette commande a déjà été retournée'], 422);
         }
 
-        if ($order->status !== 'livree') {
-            return response()->json(['message' => 'Seules les commandes livrées peuvent être retournées'], 422);
-        }
-
-        $reference = $order->delivered_at ?? $order->created_at;
-        if ($reference->diffInHours(now()) > 24) {
+        if (!$order->canBeCanceledOrReturned()) {
             return response()->json(['message' => 'La période de retour de 24 heures est expirée'], 422);
         }
 
@@ -264,7 +399,11 @@ class OrderController extends Controller
                 $item->product->increment('stock', $item->quantity);
             }
 
-            $order->update(['returned_at' => now()]);
+            $order->update([
+                'status' => 'retournee',
+                'returned_at' => now(),
+                'stock_restored_at' => now(),
+            ]);
 
             DB::commit();
 

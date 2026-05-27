@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { CartProvider } from './context/CartContext'
+import { LoyaltyProvider } from './context/LoyaltyContext'
 import { ThemeProvider } from './context/ThemeContext'
 
 // Layouts
@@ -24,11 +25,13 @@ import ProfilePage from './pages/ProfilePage'
 import AdminDashboard from './pages/Admin/Dashboard'
 import AdminProducts from './pages/Admin/Products'
 import AdminOrders from './pages/Admin/Orders'
+import AdminReturns from './pages/Admin/Returns'
 import AdminUsers from './pages/Admin/Users'
 import AdminUserArchives from './pages/Admin/UserArchives'
 import AdminReviews from './pages/Admin/Reviews'
 import AdminReports from './pages/Admin/Reports'
 import AdminSettings from './pages/Admin/Settings'
+import AdminLoyalty from './pages/Admin/Loyalty'
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth()
@@ -51,9 +54,10 @@ export default function App() {
     <ThemeProvider>
       <AuthProvider>
         <CartProvider>
-          <BrowserRouter>
-            <Routes>
-              {/* Main */}
+          <LoyaltyProvider>
+            <BrowserRouter>
+              <Routes>
+                {/* Main */}
               <Route element={<MainLayout />}>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/vetements" element={<ProductsPage categoryId={1} title={t('nav.clothes')} />} />
@@ -74,14 +78,17 @@ export default function App() {
                 <Route index element={<AdminDashboard />} />
                 <Route path="produits" element={<AdminProducts />} />
                 <Route path="commandes" element={<AdminOrders />} />
+                <Route path="retours" element={<AdminReturns />} />
                 <Route path="utilisateurs" element={<AdminUsers />} />
                 <Route path="utilisateurs-archives" element={<AdminUserArchives />} />
+                <Route path="fidelite" element={<AdminLoyalty />} />
                 <Route path="avis" element={<AdminReviews />} />
                 <Route path="rapports" element={<AdminReports />} />
                 <Route path="parametres" element={<AdminSettings />} />
               </Route>
             </Routes>
           </BrowserRouter>
+        </LoyaltyProvider>
         </CartProvider>
       </AuthProvider>
     </ThemeProvider>

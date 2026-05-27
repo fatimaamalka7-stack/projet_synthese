@@ -1,16 +1,24 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
-import { FiEye, FiX, FiBell } from 'react-icons/fi'
-import { FiEye, FiX, FiBell, FiRotateCw } from 'react-icons/fi'
+import { FiX, FiBell, FiEye } from 'react-icons/fi'
 
 const statusConfig = {
   en_attente: { label:'En attente', cls:'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
+  confirmee:  { label:'Confirmée', cls:'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400' },
   expediee:   { label:'Expédiée',   cls:'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
   livree:     { label:'Livrée',     cls:'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
   annulee:    { label:'Annulée',    cls:'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
   retournee:  { label:'Retournée',  cls:'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
 }
+
+const statusOptions = [
+  { value: 'en_attente', label: 'En attente' },
+  { value: 'confirmee', label: 'Confirmée' },
+  { value: 'expediee', label: 'Expédiée' },
+  { value: 'livree', label: 'Livrée' },
+  { value: 'annulee', label: 'Annulée' },
+]
 
 export default function AdminOrders() {
   const [orders, setOrders]     = useState([])
@@ -19,7 +27,17 @@ export default function AdminOrders() {
   const [filter, setFilter]     = useState('')
   const [loading, setLoading]   = useState(true)
   const [detail, setDetail]     = useState(null)
-  const hasMarkedOrdersSeen = useRef(false)
+
+  const updateOrderStatus = async (orderId, status) => {
+    try {
+      const res = await api.put(`/admin/orders/${orderId}/status`, { status })
+      setOrders(current => current.map(order => order.id === orderId ? res.data.order : order))
+      setDetail(current => current?.id === orderId ? res.data.order : current)
+      toast.success('Statut mis à jour')
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Erreur lors de la mise à jour du statut')
+    }
+  }
 
   const load = () => {
     setLoading(true)
@@ -33,61 +51,28 @@ export default function AdminOrders() {
         setOrders(loadedOrders)
         setMeta(r.data)
 
-        if (!hasMarkedOrdersSeen.current) {
-          hasMarkedOrdersSeen.current = true
-
-          try {
-            const res = await api.put('/admin/orders/seen-all')
-            const seenAt = res.data.seen_at || new Date().toISOString()
-            setOrders(current => current.map(order => (
-              order.admin_seen_at ? order : { ...order, admin_seen_at: seenAt }
-            )))
-            window.dispatchEvent(new Event('orders:seen'))
-            window.dispatchEvent(new Event('notifications:changed'))
-          } catch {
-            hasMarkedOrdersSeen.current = false
-          }
-        }
+        try {
+          const res = await api.put('/admin/orders/seen-all')
+          const seenAt = res.data.seen_at || new Date().toISOString()
+          setOrders(current => current.map(order => (
+            order.admin_seen_at ? order : { ...order, admin_seen_at: seenAt }
+          )))
+          window.dispatchEvent(new Event('orders:seen'))
+          window.dispatchEvent(new Event('notifications:changed'))
+        } catch {}
       })
       .finally(() => setLoading(false))
   }
 
   useEffect(() => { load() }, [page, filter])
 
-  const updateStatus = async (id, status) => {
+  const restockOrder = async (id) => {
     try {
-      await api.put(`/admin/orders/${id}/status`, { status })
-      toast.success('Statut mis à jour')
+      await api.put(`/admin/orders/${id}/restock`)
+      toast.success('Stock restauré pour la commande')
       load()
-      if (detail?.id === id) setDetail(d => ({ ...d, status }))
-    } catch { toast.error('Erreur') }
-  }
-
-  const returnOrder = async (id) => {
-    try {
-      await api.put(`/admin/orders/${id}/return`)
-      toast.success('Commande retournée et stock restauré')
-      load()
-      if (detail?.id === id) setDetail(d => ({ ...d, returned_at: new Date().toISOString() }))
     } catch (error) {
-      toast.error(error?.response?.data?.message || 'Impossible de traiter le retour')
-    }
-  }
-
-  const openDetail = async (order) => {
-    setDetail(order)
-
-    if (order.admin_seen_at) return
-
-    try {
-      const res = await api.put(`/admin/orders/${order.id}/seen`)
-      const seenOrder = res.data.order
-      setDetail(seenOrder)
-      setOrders(current => current.map(item => item.id === order.id ? seenOrder : item))
-      window.dispatchEvent(new Event('orders:seen'))
-      window.dispatchEvent(new Event('notifications:changed'))
-    } catch {
-      toast.error('Impossible de marquer la commande comme vue')
+      toast.error(error?.response?.data?.message || 'Erreur lors de la restauration du stock')
     }
   }
 
@@ -100,7 +85,7 @@ export default function AdminOrders() {
 
       {/* Filter */}
       <div className="flex gap-2 flex-wrap">
-        {[['','Toutes'], ['en_attente','En attente'], ['expediee','Expédiée'], ['livree','Livrée'], ['annulee','Annulée'], ['retournee','Retournée']].map(([v,l]) => (
+        {[['','Toutes'], ['en_attente','En attente'], ['confirmee','Confirmée'], ['expediee','Expédiée'], ['livree','Livrée'], ['annulee','Annulée'], ['retournee','Retournée']].map(([v,l]) => (
           <button key={v} onClick={() => { setFilter(v); setPage(1) }}
             className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${filter===v ? 'bg-primary-600 text-white' : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-primary-300'}`}>
             {l}
@@ -146,26 +131,27 @@ export default function AdminOrders() {
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3">
-                    <select value={order.status}
-                    <select value={order.returned_at ? 'retournee' : order.status}
-                      onChange={e => updateStatus(order.id, e.target.value)}
-                      className={`text-xs font-semibold px-2 py-1.5 rounded-lg border-0 cursor-pointer ${statusConfig[order.returned_at ? 'retournee' : order.status]?.cls}`}>
-                      {Object.entries(statusConfig).map(([v,{label}]) => (
-                        <option key={v} value={v}>{label}</option>
-                      ))}
-                    </select>
+                          <td className="px-4 py-3">
+                    {order.returned_at || order.status === 'retournee' ? (
+                      <span className={`text-xs font-semibold px-2 py-1.5 rounded-lg ${statusConfig.retournee.cls}`}>
+                        {statusConfig.retournee.label}
+                      </span>
+                    ) : (
+                      <select
+                        value={order.status}
+                        onChange={e => updateOrderStatus(order.id, e.target.value)}
+                        className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-gray-700 dark:text-gray-100 px-3 py-2"
+                      >
+                        {statusOptions.map(option => (
+                          <option key={option.value} value={option.value}>{option.label}</option>
+                        ))}
+                      </select>
+                    )}
                   </td>
                   <td className="px-4 py-3">
-                  <td className="px-4 py-3 flex items-center gap-2">
-                    <button onClick={() => openDetail(order)} className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-500">
-                      <FiEye size={15}/>
+                    <button onClick={() => setDetail(order)} className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors flex items-center gap-2">
+                      <FiEye size={16} /> Voir détails
                     </button>
-                    {order.status === 'livree' && !order.returned_at && (new Date() - new Date(order.delivered_at ?? order.created_at)) <= 24 * 60 * 60 * 1000 && (
-                      <button onClick={() => returnOrder(order.id)} className="p-2 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 text-purple-500" title="Retourner la commande">
-                        <FiRotateCw size={15}/>
-                      </button>
-                    )}
                   </td>
                 </tr>
               ))}
@@ -195,6 +181,8 @@ export default function AdminOrders() {
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div><span className="text-gray-500">Client:</span> <span className="font-medium">{detail.user?.name}</span></div>
                 <div><span className="text-gray-500">Paiement:</span> <span className="font-medium capitalize">{detail.payment_method}</span></div>
+                <div><span className="text-gray-500">Statut:</span> <span className="font-medium">{statusConfig[detail.status]?.label || (detail.returned_at ? statusConfig.retournee.label : detail.status)}</span></div>
+                <div><span className="text-gray-500">Méthode de paiement:</span> <span className="font-medium">{detail.payment?.method || detail.payment_method || 'N/A'}</span></div>
                 <div className="col-span-2"><span className="text-gray-500">Adresse:</span> <span className="font-medium">{detail.address}</span></div>
               </div>
               <div className="space-y-2">
@@ -206,10 +194,22 @@ export default function AdminOrders() {
                   </div>
                 ))}
               </div>
-              <div className="flex justify-between font-bold text-lg border-t border-gray-100 dark:border-gray-700 pt-3">
-                <span>Total</span>
-                <span className="text-primary-600">{Number(detail.total).toFixed(2)} DH</span>
+              <div className="grid grid-cols-2 gap-3 text-sm text-gray-600">
+                <div><span className="font-semibold">Sous-total:</span> {Number(detail.subtotal).toFixed(2)} DH</div>
+                <div><span className="font-semibold">Total:</span> {Number(detail.total).toFixed(2)} DH</div>
               </div>
+              {detail.returnRequests?.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-sm">Retour(s)</h4>
+                  {detail.returnRequests.map(req => (
+                    <div key={req.id} className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4 text-sm space-y-2">
+                      <div><span className="font-semibold">Motif de retour:</span> {req.reason}</div>
+                      {req.description && <div><span className="font-semibold">Description:</span> {req.description}</div>}
+                      <div><span className="font-semibold">Statut du retour:</span> {req.status}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

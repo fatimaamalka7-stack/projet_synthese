@@ -9,7 +9,6 @@ const EMPTY = { name: '', description: '', price: '', stock: '', category_id: ''
 export default function AdminProducts() {
   const [products, setProducts] = useState([])
   const { t } = useTranslation()
-  const [products, setProducts]   = useState([])
   const [categories, setCategories] = useState([])
   const [meta, setMeta] = useState(null)
   const [page, setPage] = useState(1)
@@ -87,7 +86,6 @@ export default function AdminProducts() {
         </div>
         <button onClick={openAdd} className="btn-primary flex items-center gap-2">
           <FiPlus size={16} /> Ajouter
-          <FiPlus size={16}/> {t('button.add')}
         </button>
       </div>
 

@@ -79,8 +79,7 @@
         "continue_shopping": "Continuer les achats",
         "clear_cart": "Vider le panier",
         "quantity": "Quantité",
-        "remove": "Supprimer"
-    ,
+        "remove": "Supprimer",
         "login_required": "Connectez-vous pour ajouter au panier",
         "added_success": "Produit ajouté au panier !",
         "removed_success": "Produit retiré du panier"
@@ -157,6 +156,12 @@
         "stats_orders_sub": "au total",
         "pending_orders": "Commandes en attente",
         "pending_orders_sub": "à traiter",
+        "return_requests": "Demandes de retour",
+        "return_requests_sub": "Demandes totales",
+        "pending_return_requests": "Retours en attente",
+        "pending_return_requests_sub": "À traiter",
+        "refunded_return_requests": "Retours remboursés",
+        "refunded_return_requests_sub": "Retours validés",
         "stats_products_sub": "en catalogue",
         "stats_revenue_sub": "hors annulées",
         "revenue_last_30_days": "Revenus – 30 derniers jours",

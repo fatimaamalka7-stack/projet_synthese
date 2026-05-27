@@ -5,7 +5,7 @@ import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend
 } from 'recharts'
-import { FiUsers, FiShoppingBag, FiPackage, FiTrendingUp, FiBell } from 'react-icons/fi'
+import { FiUsers, FiShoppingBag, FiPackage, FiTrendingUp, FiBell, FiRefreshCw } from 'react-icons/fi'
 
 const COLORS = ['#c026d3', '#f97316', '#3b82f6', '#10b981']
 
@@ -65,6 +65,8 @@ export default function AdminDashboard() {
     value: s.count,
   })) || []
 
+  
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
@@ -73,10 +75,11 @@ export default function AdminDashboard() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         <StatCard title={t('admin.users')} value={stats?.total_users} icon={FiUsers} color="bg-primary-600" sub={t('admin.stats_users_sub')} />
         <StatCard title={t('admin.orders')} value={stats?.total_orders} icon={FiShoppingBag} color="bg-accent-500" sub={t('admin.stats_orders_sub')} />
         <StatCard title={t('admin.pending_orders')} value={stats?.pending_orders} icon={FiBell} color="bg-red-500" sub={t('admin.pending_orders_sub')} />
+        <StatCard title={t('admin.pending_return_requests')} value={stats?.pending_return_requests} icon={FiBell} color="bg-yellow-500" sub={t('admin.pending_return_requests_sub')} />
         <StatCard title={t('admin.products')} value={stats?.total_products} icon={FiPackage} color="bg-blue-500" sub={t('admin.stats_products_sub')} />
         <StatCard title={t('admin.revenue')} value={`${Number(stats?.total_revenue || 0).toFixed(0)} DH`} icon={FiTrendingUp} color="bg-emerald-500" sub={t('admin.stats_revenue_sub')} />
       </div>

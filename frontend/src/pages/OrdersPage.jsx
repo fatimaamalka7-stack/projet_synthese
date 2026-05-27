@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import api from '../services/api'
+import toast from 'react-hot-toast'
 import { FiPackage } from 'react-icons/fi'
 
 const statusColors = {
@@ -18,13 +19,32 @@ const statusKeys = {
   retournee: 'orders.status_returned',
 }
 
+const requestStatusLabels = {
+  pending: 'Demande en attente',
+  approved: 'Approuvée',
+  rejected: 'Rejetée',
+  refunded: 'Remboursée',
+}
+
 export default function OrdersPage() {
   const { t, i18n } = useTranslation()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
+  const [returnModal, setReturnModal] = useState(null)
+  const [requestReason, setRequestReason] = useState('')
+  const [requestDescription, setRequestDescription] = useState('')
+  const [requestingReturn, setRequestingReturn] = useState(false)
+  const [returnError, setReturnError] = useState('')
+
+  const loadOrders = () => {
+    setLoading(true)
+    api.get('/orders')
+      .then(r => setOrders(r.data.data || []))
+      .finally(() => setLoading(false))
+  }
 
   useEffect(() => {
-    api.get('/orders').then(r => setOrders(r.data.data || [])).finally(() => setLoading(false))
+    loadOrders()
   }, [])
 
   if (loading) return <div className="flex justify-center py-20"><div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" /></div>
@@ -39,8 +59,12 @@ export default function OrdersPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {orders.map(order => (
-            <div key={order.id} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5">
+          {orders.map(order => {
+            const returnRequests = order.return_requests || order.returnRequests || []
+            const referenceDate = new Date(order.delivered_at ?? order.created_at)
+            const canCancel = !order.returned_at && order.status !== 'annulee' && (Date.now() - referenceDate.getTime()) <= 24 * 60 * 60 * 1000
+            return (
+              <div key={order.id} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5">
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <p className="font-bold">{t('orders.order_number')} #{order.id}</p>
@@ -56,12 +80,106 @@ export default function OrdersPage() {
                   </div>
                 ))}
               </div>
-              <div className="border-t border-gray-100 dark:border-gray-700 pt-3 flex justify-between">
+              {returnRequests.length > 0 && (
+                <div className="mt-3 rounded-xl border border-primary-100 bg-primary-50 p-3 text-sm text-primary-700 dark:border-primary-800 dark:bg-primary-900/20 dark:text-primary-200">
+                  <div className="font-medium">{requestStatusLabels[returnRequests[0].status] || returnRequests[0].status}</div>
+                    <p className="text-sm text-gray-500 dark:text-gray-300 mt-1"><span className="font-semibold">Motif :</span> {returnRequests[0].reason}</p>
+                    {returnRequests[0].description && (
+                      <p className="text-sm text-gray-500 dark:text-gray-300 mt-1"><span className="font-semibold">Description :</span> {returnRequests[0].description}</p>
+                    )}
+                </div>
+              )}
+
+              <div className="border-t border-gray-100 dark:border-gray-700 pt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-sm text-gray-500">{t('checkout.payment_method')}: {order.payment_method}</span>
-                <span className="font-bold text-primary-600">{Number(order.total).toFixed(2)} DH</span>
+                <div className="flex items-center gap-3">
+                  <span className="font-bold text-primary-600">{Number(order.total).toFixed(2)} DH</span>
+                  {canCancel && returnRequests.length === 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setReturnModal(order)
+                        setRequestReason('')
+                        setRequestDescription('')
+                        setReturnError('')
+                      }}
+                      className="btn-primary text-sm px-4 py-2"
+                    >
+                      Annuler
+                    </button>
+                  )}
+                  {canCancel && returnRequests.length > 0 && (
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Demande de retour en cours</span>
+                  )}
+                </div>
               </div>
             </div>
-          ))}
+            )
+          })}
+        </div>
+      )}
+      {returnModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="w-full max-w-xl bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden">
+            <div className="p-6 border-b border-gray-100 dark:border-gray-700">
+              <h2 className="text-xl font-bold">Demande de retour pour la commande #{returnModal.id}</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-gray-600 dark:text-gray-300">Expliquez le motif de votre demande de retour. Notre équipe validera la demande rapidement.</p>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Motif du retour</label>
+                    <input
+                      value={requestReason}
+                      onChange={(e) => setRequestReason(e.target.value)}
+                      className="w-full input-field"
+                      placeholder="Ex : produit abîmé, mauvaise taille, etc."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Description</label>
+                    <textarea
+                      value={requestDescription}
+                      onChange={(e) => setRequestDescription(e.target.value)}
+                      rows={4}
+                      className="w-full input-field resize-none"
+                      placeholder="Détaillez le problème ou les raisons du retour"
+                    />
+                  </div>
+                </div>
+              {returnError && <p className="text-sm text-red-500">{returnError}</p>}
+              <div className="flex justify-end gap-3">
+                <button onClick={() => setReturnModal(null)} className="btn-secondary">Annuler</button>
+                <button
+                  onClick={async () => {
+                    if (!requestReason.trim()) {
+                      setReturnError('Veuillez indiquer un motif de retour.')
+                      return
+                    }
+                    setRequestingReturn(true)
+                    try {
+                        await api.post(`/orders/${returnModal.id}/returns`, {
+                          reason: requestReason,
+                          description: requestDescription,
+                        })
+                      setReturnModal(null)
+                      loadOrders()
+                      setReturnError('')
+                      toast.success('Demande de retour envoyée')
+                    } catch (error) {
+                      setReturnError(error?.response?.data?.message || 'Impossible d envoyer la demande de retour.')
+                    } finally {
+                      setRequestingReturn(false)
+                    }
+                  }}
+                  disabled={requestingReturn}
+                  className="btn-primary"
+                >
+                  {requestingReturn ? 'Envoi...' : 'Envoyer la demande'}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
