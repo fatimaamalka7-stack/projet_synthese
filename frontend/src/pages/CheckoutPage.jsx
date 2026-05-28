@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
-import { useLoyalty } from '../context/LoyaltyContext'
 import api from '../services/api'
 import toast from 'react-hot-toast'
 import { FiCreditCard, FiDollarSign, FiLock, FiMail, FiTruck } from 'react-icons/fi'
@@ -41,7 +40,7 @@ const isValidExpiry = (value) => {
   return expiryDate > currentMonth
 }
 
-function CardPaymentForm({ address, disabled, onSuccess, pointsToRedeem }) {
+function CardPaymentForm({ address, disabled, onSuccess }) {
   const { fetchCart } = useCart()
   const { user } = useAuth()
   const [cardData, setCardData] = useState({
@@ -130,7 +129,6 @@ function CardPaymentForm({ address, disabled, onSuccess, pointsToRedeem }) {
         address,
         payment_email: cardData.email,
         verification_code: verificationCode,
-        points_to_redeem: pointsToRedeem,
       })
       await fetchCart()
       toast.success('Paiement validé et commande créée')
@@ -270,18 +268,13 @@ function CardPaymentForm({ address, disabled, onSuccess, pointsToRedeem }) {
 export default function CheckoutPage() {
   const { cart, total, fetchCart } = useCart()
   const { user } = useAuth()
-  const { card, settings } = useLoyalty()
   const navigate = useNavigate()
   const [address, setAddress] = useState(user?.address || '')
   const [method, setMethod] = useState('livraison')
-  const [pointsToRedeem, setPointsToRedeem] = useState(0)
   const [loading, setLoading] = useState(false)
 
   const items = cart?.items || []
-  const maxRedeemable = card && settings ? Math.min(card.points, Math.floor(total / settings.point_value)) : 0
-  const safePointsToRedeem = Math.min(Math.max(0, Number(pointsToRedeem)), maxRedeemable)
-  const loyaltyDiscount = card && settings ? safePointsToRedeem * Number(settings.point_value) : 0
-  const finalTotal = Math.max(0, total - loyaltyDiscount)
+  const finalTotal = total
 
   const paymentMethods = [
     { value: 'livraison', label: 'Paiement à la livraison', icon: FiTruck, desc: 'Payez en espèces à la réception' },
@@ -301,7 +294,6 @@ export default function CheckoutPage() {
       const res = await api.post('/orders', {
         payment_method: method,
         address,
-        points_to_redeem: safePointsToRedeem,
       })
       await fetchCart()
       navigate('/commande-confirmee', { state: { order: res.data.order } })
@@ -370,7 +362,6 @@ export default function CheckoutPage() {
               <CardPaymentForm
                 address={address}
                 disabled={loading || items.length === 0}
-                pointsToRedeem={safePointsToRedeem}
                 onSuccess={(order) => navigate('/commande-confirmee', { state: { order } })}
               />
             )}
@@ -391,28 +382,6 @@ export default function CheckoutPage() {
               </div>
             ))}
           </div>
-
-          {card && settings && (
-            <div className="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-4 mb-4 text-sm text-gray-700 dark:text-gray-200">
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-semibold">Utiliser des points fidélité</span>
-                <span className="text-xs text-gray-500">{card.points} pts disponibles</span>
-              </div>
-              <label className="block text-xs text-gray-500 mb-2">Points à utiliser</label>
-              <input
-                type="number"
-                min="0"
-                max={maxRedeemable}
-                value={pointsToRedeem}
-                onChange={(e) => setPointsToRedeem(Math.max(0, Number(e.target.value || 0)))}
-                className="input-field w-full"
-              />
-              <p className="mt-3 text-xs text-gray-500">
-                Réduction estimée : <span className="font-medium">{loyaltyDiscount.toFixed(2)} DH</span>
-              </p>
-              <p className="mt-1 text-xs text-gray-500">Maximum utilisable : {maxRedeemable} pts</p>
-            </div>
-          )}
 
           <div className="border-t border-gray-100 dark:border-gray-700 pt-3 mb-5">
             <div className="flex justify-between font-bold text-lg">

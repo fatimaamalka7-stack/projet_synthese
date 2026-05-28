@@ -6,11 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class LoyaltyTransaction extends Model
 {
-    protected $fillable = ['loyalty_card_id', 'type', 'points', 'description', 'order_id'];
+    protected $fillable = ['user_id', 'type', 'points', 'description', 'order_id', 'amount'];
 
-    public function loyaltyCard()
+    public function user()
     {
-        return $this->belongsTo(LoyaltyCard::class);
+        return $this->belongsTo(User::class);
     }
 
     public function order()

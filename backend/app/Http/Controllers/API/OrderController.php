@@ -8,7 +8,6 @@ use App\Models\OrderItem;
 use App\Models\Cart;
 use App\Models\Product;
 use App\Models\AdminNotification;
-use App\Models\LoyaltyCard;
 use App\Models\LoyaltyTransaction;
 use App\Services\LoyaltyService;
 use Illuminate\Http\Request;
@@ -52,38 +51,30 @@ class OrderController extends Controller
         DB::beginTransaction();
         try {
             $settings = LoyaltyService::getSettings();
-            $card = LoyaltyCard::firstOrCreate([
-                'user_id' => $request->user()->id,
-            ], [
-                'points' => 0,
-                'level' => LoyaltyService::calculateLevel(0, $settings),
-                'lifetime_points' => 0,
-            ]);
+            $user = $request->user();
 
             $subtotal = $cart->items->sum(fn($i) => $i->quantity * $i->product->price);
             $pointsToRedeem = (int) $request->input('points_to_redeem', 0);
             $redeemedPoints = 0;
             $redemptionAmount = 0;
 
-            if ($pointsToRedeem > 0 && $card->points > 0) {
-                $redeemedPoints = LoyaltyService::maxRedeemablePoints($pointsToRedeem, $subtotal, $settings);
-                $redemptionAmount = LoyaltyService::calculateRedemptionAmount($redeemedPoints, $settings);
+            if ($pointsToRedeem > 0 && $user->total_points > 0) {
+                $redeemedPoints = LoyaltyService::maxRedeemablePoints($pointsToRedeem, $subtotal);
+                $redemptionAmount = LoyaltyService::calculateRedemptionAmount($redeemedPoints);
 
                 if ($redeemedPoints > 0) {
-                    $card->decrement('points', $redeemedPoints);
+                    $user->decrement('total_points', $redeemedPoints);
                 }
             }
 
             $total = max(0, $subtotal - $redemptionAmount);
-            $earnedPoints = LoyaltyService::calculatePointsEarned($subtotal, $card->level, $settings);
+            $earnedPoints = LoyaltyService::calculatePointsEarned($subtotal);
 
             if ($earnedPoints > 0) {
-                $card->increment('points', $earnedPoints);
-                $card->increment('lifetime_points', $earnedPoints);
+                $user->increment('total_points', $earnedPoints);
             }
 
-            $card->level = LoyaltyService::calculateLevel($card->points, $settings);
-            $card->save();
+            $user->save();
 
             $order = Order::create([
                 'user_id' => $request->user()->id,
@@ -92,7 +83,7 @@ class OrderController extends Controller
                 'points_redeemed' => $redeemedPoints,
                 'redemption_amount' => $redemptionAmount,
                 'loyalty_points_earned' => $earnedPoints,
-                'loyalty_level_at_order' => $card->level,
+                'loyalty_level_at_order' => null,
                 'status' => 'en_attente',
                 'payment_method' => $request->payment_method,
                 'address' => $request->address,
@@ -118,21 +109,23 @@ class OrderController extends Controller
 
             if ($redeemedPoints > 0) {
                 LoyaltyTransaction::create([
-                    'loyalty_card_id' => $card->id,
-                    'type' => 'redeemed',
+                    'user_id' => $user->id,
+                    'type' => 'usage',
                     'points' => -$redeemedPoints,
                     'description' => "Utilisation de {$redeemedPoints} points pour une réduction de {$redemptionAmount} DH",
                     'order_id' => $order->id,
+                    'amount' => $redemptionAmount,
                 ]);
             }
 
             if ($earnedPoints > 0) {
                 LoyaltyTransaction::create([
-                    'loyalty_card_id' => $card->id,
-                    'type' => 'earned',
+                    'user_id' => $user->id,
+                    'type' => 'earn',
                     'points' => $earnedPoints,
-                    'description' => "Points gagnés pour la commande",
+                    'description' => 'Points gagnés pour la commande',
                     'order_id' => $order->id,
+                    'amount' => 0,
                 ]);
             }
 
@@ -203,42 +196,36 @@ class OrderController extends Controller
 
         DB::beginTransaction();
         try {
-            $settings = LoyaltyService::getSettings();
-            $card = LoyaltyCard::firstOrCreate([
-                'user_id' => $request->user()->id,
-            ], [
-                'points' => 0,
-                'level' => LoyaltyService::calculateLevel(0, $settings),
-                'lifetime_points' => 0,
-            ]);
+            $user = $request->user();
 
             if ($order->points_redeemed > 0) {
-                $card->increment('points', $order->points_redeemed);
+                $user->increment('total_points', $order->points_redeemed);
                 LoyaltyTransaction::create([
-                    'loyalty_card_id' => $card->id,
-                    'type' => 'adjustment',
+                    'user_id' => $user->id,
+                    'type' => 'refund',
                     'points' => $order->points_redeemed,
                     'description' => 'Restauration des points suite à l\'annulation de la commande',
                     'order_id' => $order->id,
+                    'amount' => 0,
                 ]);
             }
 
             if ($order->loyalty_points_earned > 0) {
-                $pointsToRemove = min($card->points, $order->loyalty_points_earned);
+                $pointsToRemove = min($user->total_points, $order->loyalty_points_earned);
                 if ($pointsToRemove > 0) {
-                    $card->decrement('points', $pointsToRemove);
+                    $user->decrement('total_points', $pointsToRemove);
                     LoyaltyTransaction::create([
-                        'loyalty_card_id' => $card->id,
-                        'type' => 'adjustment',
+                        'user_id' => $user->id,
+                        'type' => 'reversal',
                         'points' => -$pointsToRemove,
                         'description' => 'Retrait des points gagnés après annulation de commande',
                         'order_id' => $order->id,
+                        'amount' => 0,
                     ]);
                 }
             }
 
-            $card->level = LoyaltyService::calculateLevel($card->points, $settings);
-            $card->save();
+            $user->save();
 
             foreach ($order->items as $item) {
                 $item->product->increment('stock', $item->quantity);

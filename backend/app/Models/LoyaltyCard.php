@@ -6,7 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class LoyaltyCard extends Model
 {
-    protected $fillable = ['user_id', 'points', 'level', 'lifetime_points'];
+    protected $fillable = ['user_id', 'points', 'lifetime_points', 'last_order_at'];
+
+    protected $casts = [
+        'last_order_at' => 'datetime',
+        'points' => 'integer',
+        'lifetime_points' => 'integer',
+    ];
 
     public function user()
     {

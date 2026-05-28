@@ -122,8 +122,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // Admin loyalty
         Route::get('/admin/loyalty/cards', [LoyaltyController::class, 'adminCards']);
         Route::put('/admin/loyalty/cards/{id}', [LoyaltyController::class, 'adminUpdateCard']);
-        Route::get('/admin/loyalty/settings', [LoyaltyController::class, 'adminSettings']);
-        Route::put('/admin/loyalty/settings', [LoyaltyController::class, 'adminUpdateSettings']);
+        Route::post('/admin/loyalty/cards/{id}/adjust', [LoyaltyController::class, 'adminAdjustCard']);
 
         // Admin notifications
         Route::get('/admin/notifications', [AdminNotificationController::class, 'index']);

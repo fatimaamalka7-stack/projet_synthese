@@ -2,71 +2,37 @@
 
 namespace App\Services;
 
-use App\Models\LoyaltySetting;
-
 class LoyaltyService
 {
-    public static function getSettings(): LoyaltySetting
+    public const POINTS_PER_CURRENCY = 1;
+    public const POINT_VALUE = 0.10;
+
+    public static function getSettings(): array
     {
-        return LoyaltySetting::firstOrCreate([
-            'id' => 1,
-        ], [
-            'points_per_currency' => 1.00,
-            'point_value' => 0.10,
-            'bronze_threshold' => 0,
-            'silver_threshold' => 500,
-            'gold_threshold' => 1000,
-            'bronze_multiplier' => 1.00,
-            'silver_multiplier' => 1.20,
-            'gold_multiplier' => 1.50,
-        ]);
+        return [
+            'points_per_currency' => self::POINTS_PER_CURRENCY,
+            'point_value' => self::POINT_VALUE,
+        ];
     }
 
-    public static function calculateLevel(int $points, ?LoyaltySetting $settings = null): string
+    public static function calculatePointsEarned(float $amount): int
     {
-        $settings = $settings ?? self::getSettings();
-
-        if ($points >= $settings->gold_threshold) {
-            return 'Gold';
-        }
-
-        if ($points >= $settings->silver_threshold) {
-            return 'Silver';
-        }
-
-        return 'Bronze';
+        return (int) floor($amount * self::POINTS_PER_CURRENCY);
     }
 
-    public static function calculatePointsEarned(float $amount, string $level, ?LoyaltySetting $settings = null): int
+    public static function calculateRedemptionAmount(int $points): float
     {
-        $settings = $settings ?? self::getSettings();
-
-        $multiplier = match (strtolower($level)) {
-            'gold' => $settings->gold_multiplier,
-            'silver' => $settings->silver_multiplier,
-            default => $settings->bronze_multiplier,
-        };
-
-        return (int) floor($amount * $settings->points_per_currency * $multiplier);
+        return round($points * self::POINT_VALUE, 2);
     }
 
-    public static function calculateRedemptionAmount(int $points, ?LoyaltySetting $settings = null): float
+    public static function maxRedeemablePoints(int $availablePoints, float $subtotal): int
     {
-        $settings = $settings ?? self::getSettings();
-
-        return round($points * $settings->point_value, 2);
-    }
-
-    public static function maxRedeemablePoints(int $availablePoints, float $subtotal, ?LoyaltySetting $settings = null): int
-    {
-        $settings = $settings ?? self::getSettings();
-
-        if ($settings->point_value <= 0) {
+        if (self::POINT_VALUE <= 0) {
             return 0;
         }
 
-        $maxByAmount = floor($subtotal / $settings->point_value);
+        $maxByAmount = (int) floor($subtotal / self::POINT_VALUE);
 
-        return min($availablePoints, (int) $maxByAmount);
+        return min($availablePoints, $maxByAmount);
     }
 }

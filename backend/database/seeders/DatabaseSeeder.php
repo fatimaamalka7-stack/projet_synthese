@@ -250,12 +250,6 @@ class DatabaseSeeder extends Seeder
             [
                 'points_per_currency' => 1.00,
                 'point_value' => 0.10,
-                'bronze_threshold' => 0,
-                'silver_threshold' => 500,
-                'gold_threshold' => 1000,
-                'bronze_multiplier' => 1.00,
-                'silver_multiplier' => 1.20,
-                'gold_multiplier' => 1.50,
             ]
         );
     }

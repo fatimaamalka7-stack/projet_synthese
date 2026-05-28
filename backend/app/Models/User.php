@@ -11,13 +11,13 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    protected $fillable = ['name','email','password','role','phone','address','avatar','is_blocked'];
+    protected $fillable = ['name','email','password','role','phone','address','avatar','is_blocked','total_points'];
     protected $hidden   = ['password','remember_token'];
-    protected $casts    = ['email_verified_at' => 'datetime', 'is_blocked' => 'boolean'];
+    protected $casts    = ['email_verified_at' => 'datetime', 'is_blocked' => 'boolean', 'total_points' => 'integer'];
 
     public function orders()   { return $this->hasMany(Order::class); }
     public function reviews()  { return $this->hasMany(Review::class); }
     public function cart()     { return $this->hasOne(Cart::class); }
     public function returnRequests() { return $this->hasMany(ReturnRequest::class); }
-    public function loyaltyCard() { return $this->hasOne(LoyaltyCard::class); }
+    public function loyaltyTransactions() { return $this->hasMany(LoyaltyTransaction::class); }
 }
