@@ -90,10 +90,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // Orders management
         Route::get('/admin/orders', [OrderController::class, 'adminIndex']);
         Route::get('/admin/orders/unseen-count', [OrderController::class, 'unseenCount']);
-<<<<<<< HEAD
         Route::put('/admin/orders/seen-all', [OrderController::class, 'markAllAsSeen']);
-=======
->>>>>>> origin/ayat
         Route::put('/admin/orders/{id}/seen', [OrderController::class, 'markAsSeen']);
         Route::put('/admin/orders/{id}/status', [OrderController::class, 'updateStatus']);
         Route::put('/admin/orders/{id}/return', [OrderController::class, 'returnOrder']);

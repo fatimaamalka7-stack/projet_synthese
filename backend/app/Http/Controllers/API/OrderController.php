@@ -12,10 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use App\Services\AdminNotificationService;
-<<<<<<< HEAD
 use App\Http\Controllers\API\PaymentController;
-=======
->>>>>>> origin/ayat
 
 class OrderController extends Controller
 {
@@ -84,7 +81,6 @@ class OrderController extends Controller
 
             $order->load('items.product');
 
-<<<<<<< HEAD
             // If payment was made by card, create a payment record (payment already succeeded client-side)
             if ($request->payment_method === 'carte') {
                 \App\Models\Payment::create([
@@ -95,23 +91,18 @@ class OrderController extends Controller
                 ]);
             }
 
-=======
->>>>>>> origin/ayat
             AdminNotificationService::create(
                 'order_created',
                 'Nouvelle commande',
-                "Commande #{$order->id} passee par {$request->user()->name} pour {$order->total} DH.",
+                "Commande #{$order->id} passee par {$request->user()->name}  {$order->total} DH.",
                 $order,
                 $request->user()
             );
 
-<<<<<<< HEAD
             if ($verificationKey) {
                 Cache::forget($verificationKey);
             }
 
-=======
->>>>>>> origin/ayat
             return response()->json([
                 'message' => 'Commande passée avec succès',
                 'order'   => $order,
@@ -214,7 +205,6 @@ class OrderController extends Controller
         ]);
     }
 
-<<<<<<< HEAD
     public function markAllAsSeen()
     {
         $seenAt = now();
@@ -233,8 +223,6 @@ class OrderController extends Controller
         ]);
     }
 
-=======
->>>>>>> origin/ayat
     public function updateStatus(Request $request, $id)
     {
         $request->validate([

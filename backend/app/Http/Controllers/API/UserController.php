@@ -7,10 +7,7 @@ use App\Models\User;
 use App\Models\UserArchive;
 use Illuminate\Http\Request;
 use App\Services\AdminNotificationService;
-<<<<<<< HEAD
-=======
 use App\Services\UserArchiveService;
->>>>>>> origin/ayat
 
 class UserController extends Controller
 {
@@ -105,7 +102,7 @@ class UserController extends Controller
     public function restoreArchive($id, Request $request)
     {
         $archive = UserArchiveService::getArchive($id);
-        
+
         // Vérifie que l'email n'existe pas déjà
         if (User::where('email', $archive->email)->exists()) {
             return response()->json([
@@ -114,7 +111,7 @@ class UserController extends Controller
         }
 
         $user = UserArchiveService::restore($archive);
-        
+
         return response()->json([
             'message' => 'Utilisateur restauré avec succès',
             'user' => $user
@@ -128,7 +125,7 @@ class UserController extends Controller
     {
         $archive = UserArchiveService::getArchive($id);
         UserArchiveService::deleteArchive($archive);
-        
+
         return response()->json(['message' => 'Archive supprimée définitivement']);
     }
 }
