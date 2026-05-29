@@ -145,8 +145,7 @@ INSERT INTO users (name, email, password, role, created_at, updated_at) VALUES
 -- Categories
 INSERT INTO categories (name, created_at, updated_at) VALUES
 ('Vêtements', NOW(), NOW()),
-('Chaussures', NOW(), NOW()),
-('Accessoires', NOW(), NOW());
+('Chaussures', NOW(), NOW());
 
 -- Sample Products
 INSERT INTO products (name, description, price, stock, category_id, matiere, tailles, couleurs, created_at, updated_at) VALUES
@@ -157,6 +156,6 @@ INSERT INTO products (name, description, price, stock, category_id, matiere, tai
 ('Sneakers Urban', 'Sneakers modernes pour un look urbain tendance.', 599.00, 40, 2, 'Cuir synthétique', '38,39,40,41,42,43,44,45', 'Blanc,Noir,Gris', NOW(), NOW()),
 ('Boots Cuir Véritable', 'Boots en cuir véritable, confortables et durables.', 899.00, 15, 2, 'Cuir véritable', '37,38,39,40,41,42,43', 'Marron,Noir', NOW(), NOW()),
 ('Mocassins Classic', 'Mocassins classiques, parfaits pour le bureau.', 449.00, 22, 2, 'Cuir', '38,39,40,41,42,43,44', 'Marron,Noir,Bleu marine', NOW(), NOW()),
-('Sac à Main Élégant', 'Sac à main en cuir synthétique, grande capacité.', 299.00, 35, 3, 'Cuir synthétique', 'Unique', 'Noir,Marron,Beige', NOW(), NOW()),
-('Ceinture en Cuir', 'Ceinture en cuir véritable, boucle dorée.', 149.00, 60, 3, 'Cuir véritable', '80,85,90,95,100', 'Noir,Marron', NOW(), NOW()),
-('Écharpe Cachemire', 'Écharpe en cachemire doux et chaud.', 249.00, 45, 3, '100% Cachemire', 'Unique', 'Gris,Beige,Rouge,Bleu', NOW(), NOW());
+('Robe Élégante Femme', 'Robe élégante et confortable pour un style moderne et intemporel.', 399.00, 35, 1, 'Polyester et viscose', 'XS,S,M,L,XL', 'Noir,Bleu marine,Rouge', NOW(), NOW()),
+('Blazer Femme Chic', 'Blazer tendance pour un look élégant et professionnel.', 549.00, 60, 1, 'Polyester recycle', 'S,M,L,XL', 'Noir,Marine,Creme', NOW(), NOW()),
+('Pull Femme Oversize', 'Pull confortable et stylé pour un look casual moderne.', 299.00, 45, 1, 'Coton molletonne', 'S,M,L,XL', 'Gris,Noir,Vert sauge', NOW(), NOW());

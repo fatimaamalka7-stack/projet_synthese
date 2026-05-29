@@ -6,31 +6,53 @@ import ProductCard from '../components/Products/ProductCard'
 import { FiArrowRight, FiTruck, FiShield, FiRefreshCw, FiHeart } from 'react-icons/fi'
 
 function HeroBanner({ t }) {
+  const backgroundImage = '/api/assets/home-background'
+
   return (
-    <div className="relative overflow-hidden bg-gradient-to-br from-primary-700 via-primary-600 to-accent-500 text-white">
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-10 left-10 w-64 h-64 rounded-full bg-white blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full bg-accent-400 blur-3xl" />
+    <section className="relative overflow-hidden w-full h-screen bg-[#050505] text-white">
+      <div className="absolute inset-0 overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: `url('${backgroundImage}')`,
+            filter: 'blur(28px)',
+            transform: 'scale(1.08)',
+          }}
+        />
+        <img
+          src={backgroundImage}
+          alt="VêteMode"
+          className="relative z-10 mx-auto h-full max-w-full object-contain object-top"
+          style={{
+            objectPosition: 'top center',
+          }}
+        />
       </div>
-      <div className="relative max-w-6xl mx-auto px-4 py-20 md:py-28 text-center">
-        <p className="text-primary-200 font-medium tracking-widest text-sm uppercase mb-3">{t('home.new_collection')}</p>
-        <h1 className="font-display text-4xl md:text-6xl font-bold mb-5 leading-tight">
-          {t('home.title')}<br />
-          <span className="text-accent-300">{t('home.title_highlight')}</span>
-        </h1>
-        <p className="text-primary-100 text-lg max-w-xl mx-auto mb-8">
-          {t('home.subtitle')}
-        </p>
-        <div className="flex gap-4 justify-center flex-wrap">
-          <Link to="/vetements" className="px-7 py-3.5 bg-white text-primary-700 font-semibold rounded-2xl hover:bg-primary-50 transition-colors shadow-lg">
-            {t('home.btn_clothes')}
-          </Link>
-          <Link to="/chaussures" className="px-7 py-3.5 bg-white/10 border border-white/30 text-white font-semibold rounded-2xl hover:bg-white/20 transition-colors backdrop-blur-sm">
-            {t('home.btn_shoes')}
-          </Link>
+
+      <div className="absolute inset-0 bg-black/25" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/60" />
+
+      <div className="relative z-10 flex items-center justify-center w-full h-screen px-4 py-20 md:py-28">
+        <div className="max-w-6xl mx-auto text-center">
+          <p className="text-white/90 font-medium tracking-widest text-sm uppercase mb-3 drop-shadow-lg">{t('home.new_collection')}</p>
+          <h1 className="font-display text-4xl md:text-6xl font-bold mb-5 leading-tight drop-shadow-lg">
+            {t('home.title')}<br />
+            <span className="text-accent-300 drop-shadow-lg">{t('home.title_highlight')}</span>
+          </h1>
+          <p className="text-white/95 text-lg max-w-xl mx-auto mb-8 drop-shadow-md">
+            {t('home.subtitle')}
+          </p>
+          <div className="flex gap-4 justify-center flex-wrap">
+            <Link to="/vetements" className="px-7 py-3.5 bg-white text-primary-700 font-semibold rounded-2xl hover:bg-primary-50 transition-colors shadow-lg hover:shadow-xl">
+              {t('home.btn_clothes')}
+            </Link>
+            <Link to="/chaussures" className="px-7 py-3.5 bg-white/15 border border-white/40 text-white font-semibold rounded-2xl hover:bg-white/25 transition-colors backdrop-blur-md">
+              {t('home.btn_shoes')}
+            </Link>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
   )
 }
 
@@ -98,7 +120,7 @@ function ProductSection({ title, categoryId, emoji, linkTo, t }) {
 export default function HomePage() {
   const { t } = useTranslation()
   return (
-    <div className="animate-fade-in">
+    <div>
       <HeroBanner t={t} />
       <Features t={t} />
       <ProductSection title={t('nav.clothes')} categoryId={1} emoji="👗" linkTo="/vetements" t={t} />

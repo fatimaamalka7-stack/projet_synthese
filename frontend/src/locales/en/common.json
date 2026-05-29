@@ -15,7 +15,7 @@
         "theme": "Theme"
     },
     "home": {
-        "new_collection": "New 2025 Collection",
+        "new_collection": "New 2026 Collection",
         "title": "Fashion & Elegance",
         "title_highlight": "At Your Reach",
         "subtitle": "Discover our selection of trendy clothes and shoes for every occasion.",
@@ -79,8 +79,7 @@
         "continue_shopping": "Continue shopping",
         "clear_cart": "Clear cart",
         "quantity": "Quantity",
-        "remove": "Remove"
-    ,
+        "remove": "Remove",
         "login_required": "Log in to add to cart",
         "added_success": "Product added to cart!",
         "removed_success": "Product removed from cart"

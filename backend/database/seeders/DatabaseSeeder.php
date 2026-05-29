@@ -43,10 +43,6 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Chaussures'],
             ['slug' => 'chaussures', 'description' => 'Nos chaussures pour homme et femme']
         );
-        $accessoires = Category::firstOrCreate(
-            ['name' => 'Accessoires'],
-            ['slug' => 'accessoires', 'description' => 'Sacs, ceintures, écharpes…']
-        );
 
         // ── Produits ──────────────────────────────────────────────────────────
         $products = [
@@ -172,42 +168,42 @@ class DatabaseSeeder extends Seeder
                 'couleurs'    => 'Beige,Marron,Noir',
                 'image'       => 'https://placehold.co/600x800?text=Sandales+Confort+Été',
             ],
-            // Accessoires
+            // Vêtements Femme supplémentaires
             [
-                'name'        => 'Sac à Main Élégant',
-                'slug'        => 'sac-a-main-elegant',
-                'description' => 'Sac à main en cuir synthétique de qualité, grande capacité avec plusieurs compartiments.',
+                'name'        => 'Robe Élégante Femme',
+                'slug'        => 'robe-elegante-femme',
+                'description' => 'Robe élégante et confortable pour un style moderne. Parfaite pour les occasions spéciales et le quotidien.',
+                'price'       => 399.00,
+                'stock'       => 32,
+                'category_id' => $vetements->id,
+                'matiere'     => 'Polyester viscose',
+                'tailles'     => 'XS,S,M,L,XL',
+                'couleurs'    => 'Noir,Bleu marine,Bordeaux,Blanc',
+                'image'       => 'https://placehold.co/600x800?text=Robe+Élégante+Femme',
+            ],
+            [
+                'name'        => 'Blazer Femme Chic',
+                'slug'        => 'blazer-femme-chic',
+                'description' => 'Blazer tendance pour un look élégant et professionnel. Coupe épurée et moderne pour toutes les silhouettes.',
+                'price'       => 549.00,
+                'stock'       => 28,
+                'category_id' => $vetements->id,
+                'matiere'     => '100% Polyester recycle',
+                'tailles'     => 'S,M,L,XL,XXL',
+                'couleurs'    => 'Noir,Camel,Gris,Blanc',
+                'image'       => 'https://placehold.co/600x800?text=Blazer+Femme+Chic',
+            ],
+            [
+                'name'        => 'Pull Femme Oversize',
+                'slug'        => 'pull-femme-oversize',
+                'description' => 'Pull confortable et stylé pour un look casual moderne. Coupe généreuse pour un confort maximum.',
                 'price'       => 299.00,
-                'stock'       => 35,
-                'category_id' => $accessoires->id,
-                'matiere'     => 'Cuir synthétique',
-                'tailles'     => 'Unique',
-                'couleurs'    => 'Noir,Marron,Beige,Rouge',
-                'image'       => 'https://placehold.co/600x800?text=Sac+à+Main+Élégant',
-            ],
-            [
-                'name'        => 'Ceinture en Cuir',
-                'slug'        => 'ceinture-en-cuir',
-                'description' => 'Ceinture en cuir véritable avec boucle dorée. Accessoire indispensable pour compléter votre tenue.',
-                'price'       => 149.00,
-                'stock'       => 60,
-                'category_id' => $accessoires->id,
-                'matiere'     => 'Cuir véritable',
-                'tailles'     => '80,85,90,95,100',
-                'couleurs'    => 'Noir,Marron',
-                'image'       => 'https://placehold.co/600x800?text=Ceinture+en+Cuir',
-            ],
-            [
-                'name'        => 'Écharpe Cachemire Douce',
-                'slug'        => 'echarpe-cachemire-douce',
-                'description' => 'Écharpe en pur cachemire, incroyablement douce et chaude. Un luxe abordable pour les saisons froides.',
-                'price'       => 249.00,
-                'stock'       => 45,
-                'category_id' => $accessoires->id,
-                'matiere'     => '100% Cachemire',
-                'tailles'     => 'Unique',
-                'couleurs'    => 'Gris,Beige,Rouge,Bleu,Noir',
-                'image'       => 'https://placehold.co/600x800?text=Écharpe+Cachemire+Douce',
+                'stock'       => 44,
+                'category_id' => $vetements->id,
+                'matiere'     => 'Coton molletonné',
+                'tailles'     => 'S,M,L,XL,XXL',
+                'couleurs'    => 'Gris clair,Noir,Beige,Rose poudré,Vert sage',
+                'image'       => 'https://placehold.co/600x800?text=Pull+Femme+Oversize',
             ],
         ];
 

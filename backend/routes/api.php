@@ -32,6 +32,18 @@ Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/categories/{id}/products', [CategoryController::class, 'products']);
 Route::get('/reviews/{productId}', [ReviewController::class, 'index']);
 
+// Public assets routes
+Route::get('/assets/home-background', function () {
+    $path = storage_path('app/public/img acceuil/img-backg-home.png');
+    if (!file_exists($path)) {
+        abort(404, 'Background image not found');
+    }
+    return response()->file($path, [
+        'Content-Type' => 'image/png',
+        'Cache-Control' => 'public, max-age=2592000',
+    ]);
+});
+
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
 
